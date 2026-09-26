@@ -6,6 +6,8 @@
 [![Flask](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+🔗 **Live Demo:** [recruitsmart-ai.onrender.com](https://recruitsmart-ai.onrender.com)
+
 ## 🏆 What Makes RecruitSmart Different (Publication Highlights)
 
 Most academic recruitment-system projects stop at "parse a resume, compute a keyword-match score." RecruitSmart goes further with two features designed specifically to stand out in a crowded field of similar student projects:

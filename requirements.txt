@@ -18,6 +18,7 @@ Werkzeug>=3.0.1
 # Database
 SQLAlchemy>=2.0.25
 alembic>=1.13.1
+psycopg[binary]>=3.1.18
 psycopg2-binary>=2.9.9
 
 # Production WSGI server (Flask's built-in dev server is not for production)

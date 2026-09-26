@@ -5,3 +5,5 @@ instance/
 .pytest_cache/
 *.db
 .DS_Store
+
+app/static/uploads/

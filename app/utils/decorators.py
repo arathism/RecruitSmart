@@ -5,10 +5,8 @@ from flask_login import current_user
 
 def _require_2fa_or_redirect():
     """Shared check: any authenticated user without TOTP set up gets sent to
-    auth.setup_2fa before reaching a protected route. Originally this was
-    admin-only; it's now enforced for every role (admin, recruiter,
-    candidate) so every account type gets the same mandatory 2FA
-    protection, not just admins."""
+    auth.setup_2fa before reaching a protected route, so QR-code 2FA is
+    enforced at sign-in for every role (admin, recruiter, candidate)."""
     if not current_user.two_factor_enabled:
         flash('Your account requires two-factor authentication. Please set it up to continue.', 'warning')
         return redirect(url_for('auth.setup_2fa'))

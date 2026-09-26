@@ -19,7 +19,6 @@ Werkzeug>=3.0.1
 SQLAlchemy>=2.0.25
 alembic>=1.13.1
 psycopg2-binary>=2.9.9
-psycopg[binary]>=3.1.18
 
 # Production WSGI server (Flask's built-in dev server is not for production)
 gunicorn>=21.2.0
@@ -51,4 +50,3 @@ reportlab>=4.1.0
 
 # Automated Testing (dev only, not needed to run the server)
 pytest>=8.0.0
-psycopg[binary]>=3.1.18

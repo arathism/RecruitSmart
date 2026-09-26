@@ -9,45 +9,9 @@ from app import db, limiter, oauth
 from app.models import User, ActivityLog, Notification, PlatformSettings
 from app.utils.decorators import logout_required
 from app.utils.email import send_verification_email, send_password_reset_email
-from app.utils.otp import send_registration_otp, verify_registration_otp, issue_verified_token, check_verified_token
 
 EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
-
-@bp.route('/send-otp', methods=['POST'])
-@logout_required
-@limiter.limit('5 per hour')
-def send_otp():
-    data = request.get_json(silent=True) or request.form
-    email = (data.get('email') or '').strip().lower()
-
-    if not email or not EMAIL_RE.match(email):
-        return jsonify(success=False, message='Please enter a valid email address.'), 400
-
-    if User.query.filter_by(email=email).first():
-        return jsonify(success=False, message='That email is already registered. Try signing in instead.'), 400
-
-    ok, message = send_registration_otp(email)
-    return jsonify(success=ok, message=message), (200 if ok else 429)
-
-
-@bp.route('/verify-otp', methods=['POST'])
-@logout_required
-@limiter.limit('20 per hour')
-def verify_otp():
-    data = request.get_json(silent=True) or request.form
-    email = (data.get('email') or '').strip().lower()
-    code = (data.get('otp') or '').strip()
-
-    if not email or not code:
-        return jsonify(success=False, message='Missing email or code.'), 400
-
-    ok, message = verify_registration_otp(email, code)
-    if not ok:
-        return jsonify(success=False, message=message), 400
-
-    token = issue_verified_token(email)
-    return jsonify(success=True, message=message, token=token), 200
 
 def validate_password(password):
     """Validate password strength."""
@@ -102,7 +66,6 @@ def register():
         confirm_password = request.form.get('confirm_password', '')
         full_name = request.form.get('full_name', '').strip()
         phone = request.form.get('phone', '').strip()
-        otp_token = request.form.get('otp_token', '')
         agree_terms = request.form.get('agree_terms')
         role = request.form.get('role', 'candidate')
         company_name = request.form.get('company_name', '').strip()
@@ -120,9 +83,6 @@ def register():
 
         if User.query.filter_by(email=email).first():
             errors.append("Email already registered")
-
-        if not check_verified_token(otp_token, email):
-            errors.append("Please verify your email address with the OTP we sent before registering")
 
         is_valid, msg = validate_password(password)
         if not is_valid:

@@ -11,7 +11,6 @@
                 </div>
                 <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <input type="hidden" name="otp_token" id="otp_token" value="">
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Full Name</label>
@@ -25,23 +24,8 @@
                         <label class="form-label fw-semibold">Email Address</label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-envelope text-secondary"></i></span>
-                            <input type="email" name="email" id="email" class="form-control" value="{{ email or '' }}" required>
-                            <button class="btn btn-outline-primary fw-semibold" type="button" id="sendOtpBtn" style="border-radius:0 12px 12px 0;">Send OTP</button>
+                            <input type="email" name="email" id="email" class="form-control" style="border-radius:0 12px 12px 0;" value="{{ email or '' }}" required>
                         </div>
-                        <div class="form-text" id="otpHelp"></div>
-                    </div>
-
-                    <div class="mb-3" id="otpBlock" style="display:none;">
-                        <label class="form-label fw-semibold">Enter OTP</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-shield-alt text-secondary"></i></span>
-                            <input type="text" id="otp_code" class="form-control" style="letter-spacing:4px;" maxlength="6" inputmode="numeric" placeholder="6-digit code">
-                            <button class="btn btn-success fw-semibold" type="button" id="verifyOtpBtn" style="border-radius:0 12px 12px 0;">Verify</button>
-                        </div>
-                        <div class="form-text" id="verifyHelp"></div>
-                    </div>
-                    <div class="mb-3" id="verifiedBadge" style="display:none;">
-                        <span class="badge rounded-pill" style="background:rgba(16,185,129,0.12);color:#059669;padding:8px 16px;"><i class="fas fa-check-circle me-1"></i>Email verified</span>
                     </div>
 
                     <div class="mb-3">
@@ -189,112 +173,6 @@
         label.textContent = v ? labels[passed] : '';
     });
 
-    // --- OTP flow ---
-    var emailEl = document.getElementById('email');
-    var sendBtn = document.getElementById('sendOtpBtn');
-    var otpBlock = document.getElementById('otpBlock');
-    var otpHelp = document.getElementById('otpHelp');
-    var verifyHelp = document.getElementById('verifyHelp');
-    var otpCodeEl = document.getElementById('otp_code');
-    var verifyBtn = document.getElementById('verifyOtpBtn');
-    var verifiedBadge = document.getElementById('verifiedBadge');
-    var otpTokenEl = document.getElementById('otp_token');
-    var emailVerified = false;
-    var cooldownTimer = null;
-
-    function markUnverified() {
-        emailVerified = false;
-        otpTokenEl.value = '';
-        verifiedBadge.style.display = 'none';
-    }
-    emailEl.addEventListener('input', markUnverified);
-
-    function startCooldown(seconds) {
-        sendBtn.disabled = true;
-        clearInterval(cooldownTimer);
-        cooldownTimer = setInterval(function () {
-            seconds--;
-            sendBtn.textContent = seconds > 0 ? ('Resend (' + seconds + 's)') : 'Resend';
-            if (seconds <= 0) { clearInterval(cooldownTimer); sendBtn.disabled = false; }
-        }, 1000);
-    }
-
-    sendBtn.addEventListener('click', function () {
-        var email = emailEl.value.trim();
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            otpHelp.textContent = 'Enter a valid email address first.';
-            otpHelp.style.color = '#ef4444';
-            return;
-        }
-        sendBtn.disabled = true;
-        var originalText = sendBtn.textContent;
-        sendBtn.textContent = 'Sending...';
-        otpHelp.textContent = '';
-
-        fetch("{{ url_for('auth.send_otp') }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            body: JSON.stringify({ email: email })
-        }).then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
-          .then(function (res) {
-            otpHelp.textContent = res.data.message;
-            otpHelp.style.color = res.data.success ? '#059669' : '#ef4444';
-            if (res.data.success) {
-                otpBlock.style.display = 'block';
-                otpCodeEl.focus();
-                startCooldown(30);
-            } else {
-                sendBtn.textContent = originalText;
-                sendBtn.disabled = false;
-            }
-        }).catch(function () {
-            otpHelp.textContent = 'Network error, please try again.';
-            otpHelp.style.color = '#ef4444';
-            sendBtn.textContent = originalText;
-            sendBtn.disabled = false;
-        });
-    });
-
-    verifyBtn.addEventListener('click', function () {
-        var email = emailEl.value.trim();
-        var code = otpCodeEl.value.trim();
-        if (!code) { verifyHelp.textContent = 'Enter the code sent to your email.'; verifyHelp.style.color = '#ef4444'; return; }
-        verifyBtn.disabled = true;
-        verifyBtn.textContent = 'Verifying...';
-
-        fetch("{{ url_for('auth.verify_otp') }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            body: JSON.stringify({ email: email, otp: code })
-        }).then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
-          .then(function (res) {
-            verifyBtn.disabled = false;
-            verifyBtn.textContent = 'Verify';
-            verifyHelp.textContent = res.data.success ? '' : res.data.message;
-            verifyHelp.style.color = '#ef4444';
-            if (res.data.success) {
-                emailVerified = true;
-                otpTokenEl.value = res.data.token;
-                otpBlock.style.display = 'none';
-                verifiedBadge.style.display = 'block';
-                sendBtn.style.display = 'none';
-            }
-        }).catch(function () {
-            verifyBtn.disabled = false;
-            verifyBtn.textContent = 'Verify';
-            verifyHelp.textContent = 'Network error, please try again.';
-            verifyHelp.style.color = '#ef4444';
-        });
-    });
-
-    document.getElementById('registerForm').addEventListener('submit', function (e) {
-        if (!emailVerified) {
-            e.preventDefault();
-            otpHelp.textContent = 'Please verify your email with the OTP first.';
-            otpHelp.style.color = '#ef4444';
-            window.scrollTo({ top: emailEl.getBoundingClientRect().top + window.scrollY - 100, behavior: 'smooth' });
-        }
-    });
 })();
 </script>
 {% endblock %}

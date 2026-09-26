@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Candidates - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Recruiter</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('recruiter.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.post_job') }}"><i class="fas fa-plus-circle me-2"></i>Post Job</a>
+                    <a class="nav-link active" href="{{ url_for('recruiter.my_jobs') }}"><i class="fas fa-briefcase me-2"></i>My Jobs</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.skill_demand') }}"><i class="fas fa-chart-bar me-2"></i>Skill Demand</a>
+                </nav>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1">Candidates for {{ job.title }}</h3>
+                    <p class="text-muted mb-0">{{ match_scores|length }} candidate(s) AI-matched, ranked by overall score</p>
+                </div>
+                {% if match_scores %}
+                <a href="{{ url_for('recruiter.download_shortlist_report', job_id=job.id) }}" class="btn btn-premium"><i class="fas fa-file-pdf me-2"></i>Export Shortlist PDF</a>
+                {% endif %}
+            </div>
+
+            {% if match_scores %}
+            <div class="card-premium">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Overall</th>
+                                <th>Skill</th>
+                                <th>Experience</th>
+                                <th>GitHub Verified</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in match_scores %}
+                            <tr>
+                                <td>
+                                    <strong>{{ match.resume.user.get_full_name() }}</strong><br>
+                                    <small class="text-muted">{{ match.resume.user.email }}</small>
+                                    {% if match.resume.user.github_verification %}
+                                        <br><small class="text-success"><i class="fab fa-github me-1"></i>Score {{ match.resume.user.github_verification.portfolio_score }}/100</small>
+                                    {% endif %}
+                                    {% if match.resume.authenticity_score is not none %}
+                                        <br><small class="{% if match.resume.authenticity_score >= 85 %}text-success{% elif match.resume.authenticity_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                            <i class="fas fa-fingerprint me-1"></i>{{ match.resume.authenticity_tier }} ({{ match.resume.authenticity_score }}/100)
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-{{ match.get_score_color() }}">{{ match.overall_score }}%</span></td>
+                                <td>{{ match.skill_score }}%</td>
+                                <td>{{ match.experience_score }}%</td>
+                                <td>
+                                    {% if match.resume.user.github_verification %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-minus text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if match.is_shortlisted %}<span class="badge bg-success">Shortlisted</span>
+                                    {% elif match.is_rejected %}<span class="badge bg-danger">Rejected</span>
+                                    {% else %}<span class="badge bg-secondary">Pending</span>{% endif %}
+                                </td>
+                                <td class="text-nowrap">
+                                    <form method="POST" action="{{ url_for('recruiter.shortlist_candidate', match_id=match.id) }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Shortlist"><i class="fas fa-check"></i></button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('recruiter.reject_candidate', match_id=match.id) }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                    </form>
+                                    <a href="{{ url_for('recruiter.schedule_interview', match_id=match.id) }}" class="btn btn-sm btn-outline-primary" title="Schedule Interview"><i class="fas fa-calendar"></i></a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card-premium text-center py-5">
+                <i class="fas fa-users fs-1 text-muted mb-3"></i>
+                <p class="text-muted mb-0">No candidates have been AI-matched to this job yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

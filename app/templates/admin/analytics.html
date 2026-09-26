@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Analytics - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}"><i class="fas fa-users-cog me-2"></i>Manage Users</a>
+                    <a class="nav-link" href="{{ url_for('admin.jobs') }}"><i class="fas fa-briefcase me-2"></i>All Jobs</a>
+                    <a class="nav-link active" href="{{ url_for('admin.analytics') }}"><i class="fas fa-chart-line me-2"></i>Analytics</a>
+                    <a class="nav-link" href="{{ url_for('admin.security_center') }}"><i class="fas fa-shield-alt me-2"></i>Security Center</a>
+                    <a class="nav-link" href="{{ url_for('admin.manage_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>Settings</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Analytics</h3>
+            <p class="text-muted small mb-4"><i class="fas fa-database me-1"></i>Every chart below is a live SQL aggregate query (grouped by month) against this platform's own database.</p>
+
+            {% set max_users = (user_growth|map(attribute=1)|max) if user_growth else 1 %}
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-4"><i class="fas fa-user-plus me-2" style="color:var(--primary);"></i>User Growth by Month</h5>
+                {% if user_growth %}
+                <div class="d-flex align-items-end gap-2" style="height:180px;">
+                    {% for month, count in user_growth %}
+                    <div class="d-flex flex-column align-items-center justify-content-end" style="flex:1;height:100%;">
+                        <div class="fw-bold small mb-1">{{ count }}</div>
+                        <div style="width:100%;max-width:40px;background:var(--gradient);border-radius:6px 6px 0 0;height:{{ (count / max_users * 130)|round|int if max_users else 4 }}px;min-height:4px;"></div>
+                        <small class="text-muted mt-2" style="font-size:0.7rem;">{{ month }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No user registrations recorded yet.</p>
+                {% endif %}
+            </div>
+
+            {% set max_jobs = (job_growth|map(attribute=1)|max) if job_growth else 1 %}
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-4"><i class="fas fa-briefcase me-2" style="color:var(--success);"></i>Job Postings by Month</h5>
+                {% if job_growth %}
+                <div class="d-flex align-items-end gap-2" style="height:180px;">
+                    {% for month, count in job_growth %}
+                    <div class="d-flex flex-column align-items-center justify-content-end" style="flex:1;height:100%;">
+                        <div class="fw-bold small mb-1">{{ count }}</div>
+                        <div style="width:100%;max-width:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:6px 6px 0 0;height:{{ (count / max_jobs * 130)|round|int if max_jobs else 4 }}px;min-height:4px;"></div>
+                        <small class="text-muted mt-2" style="font-size:0.7rem;">{{ month }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No jobs have been posted yet.</p>
+                {% endif %}
+            </div>
+
+            {% set total_apps = app_stats.values()|sum %}
+            <div class="card-premium">
+                <h5 class="fw-bold mb-4"><i class="fas fa-paper-plane me-2" style="color:var(--accent);"></i>Application Pipeline</h5>
+                {% if total_apps > 0 %}
+                    {% for status, count in app_stats.items() %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ status|title }}</span>
+                            <strong>{{ count }} ({{ (count / total_apps * 100)|round|int }}%)</strong>
+                        </div>
+                        <div class="progress" style="height:10px;">
+                            <div class="progress-bar progress-gradient" style="width:{{ (count / total_apps * 100)|round|int }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No applications submitted yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

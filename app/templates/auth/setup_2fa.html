@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Set Up Two-Factor Authentication - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-premium">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Set Up Two-Factor Authentication</h2>
+                    <p style="color:#dc2626;font-weight:600;">Required on every account before you can continue.</p>
+                    <p style="color:#64748b;">Scan the QR code with Google Authenticator, Authy, or any TOTP app.</p>
+                </div>
+
+                <div class="text-center mb-4">
+                    <div id="qr-code" style="display:inline-block; padding:12px; background:#fff; border-radius:12px; border:1px solid #e2e8f0;"></div>
+                </div>
+
+                <div class="mb-4 text-center">
+                    <p style="color:#64748b; margin-bottom:4px;">Can't scan? Enter this key manually:</p>
+                    <code style="font-size:1.05rem; letter-spacing:0.05em;">{{ secret }}</code>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.setup_2fa') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Enter the 6-digit code from your app</label>
+                        <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                               class="form-control form-control-lg text-center" style="border-radius:12px; letter-spacing:0.4em; font-size:1.4rem;"
+                               placeholder="000000" autofocus required>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100 btn-lg">Confirm &amp; Enable</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    // Client-side QR rendering only -- the server never generates or stores
+    // a QR image, it just hands the browser the same otpauth:// URI an
+    // authenticator app would read from a scanned image. If the CDN
+    // script fails to load (offline, blocked), the manual key above still
+    // works for setup.
+    (function () {
+        var el = document.getElementById('qr-code');
+        if (typeof QRCode === 'undefined' || !el) return;
+        new QRCode(el, {
+            text: {{ otpauth_uri | tojson }},
+            width: 200,
+            height: 200
+        });
+    })();
+</script>
+{% endblock %}

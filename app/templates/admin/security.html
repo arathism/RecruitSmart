@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Security Center - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}"><i class="fas fa-users-cog me-2"></i>Manage Users</a>
+                    <a class="nav-link" href="{{ url_for('admin.jobs') }}"><i class="fas fa-briefcase me-2"></i>All Jobs</a>
+                    <a class="nav-link" href="{{ url_for('admin.analytics') }}"><i class="fas fa-chart-line me-2"></i>Analytics</a>
+                    <a class="nav-link active" href="{{ url_for('admin.security_center') }}"><i class="fas fa-shield-alt me-2"></i>Security Center</a>
+                    <a class="nav-link" href="{{ url_for('admin.manage_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>Settings</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-1">Security Center</h3>
+            <p class="text-muted small mb-4"><i class="fas fa-database me-1"></i>Every figure below reflects real security checks that ran on this platform (file upload scanning, login lockouts, recruiter verification) &mdash; not a demo panel.</p>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <i class="fas fa-file-shield mb-2" style="color:var(--danger);"></i>
+                        <div class="stat-value">{{ stats.total_blocked_uploads }}</div>
+                        <small class="text-muted">Malicious Uploads Blocked</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <i class="fas fa-lock mb-2" style="color:var(--warning);"></i>
+                        <div class="stat-value">{{ stats.locked_accounts }}</div>
+                        <small class="text-muted">Locked Accounts</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <i class="fas fa-user-clock mb-2" style="color:var(--primary);"></i>
+                        <div class="stat-value">{{ stats.pending_recruiters }}</div>
+                        <small class="text-muted">Pending Recruiters</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <i class="fas fa-exclamation-triangle mb-2" style="color:var(--danger);"></i>
+                        <div class="stat-value">{{ stats.high_severity_events }}</div>
+                        <small class="text-muted">High-Severity Events</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-shield-virus me-2" style="color:var(--danger);"></i>Blocked Upload / Security Events</h5>
+                {% if events.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>User</th><th>Type</th><th>Severity</th><th>Details</th><th>IP</th><th>Time</th></tr></thead>
+                        <tbody>
+                            {% for event in events.items %}
+                            <tr>
+                                <td>{{ event.user.email if event.user else 'Unknown' }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ event.event_type|replace('_', ' ')|title }}</span></td>
+                                <td>
+                                    <span class="badge {% if event.severity == 'high' %}bg-danger{% elif event.severity == 'medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                        {{ event.severity|title }}
+                                    </span>
+                                </td>
+                                <td class="small text-muted">{{ event.description }}</td>
+                                <td class="small">{{ event.ip_address or '-' }}</td>
+                                <td class="small text-muted">{{ event.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if events.pages > 1 %}
+                <nav class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        {% for p in range(1, events.pages + 1) %}
+                        <li class="page-item {% if p == events.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.security_center', page=p) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <p class="text-success small mb-0"><i class="fas fa-check-circle me-1"></i>No security events recorded. No malicious uploads have been blocked yet.</p>
+                {% endif %}
+            </div>
+
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-clipboard-list me-2" style="color:var(--primary);"></i>Admin Action Audit Log</h5>
+                <p class="text-muted small mb-3">Every privileged action taken by any admin account — who did it, to what, and when. This record is independent of the actor's or target's account state later changing.</p>
+                {% if admin_audit_logs %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>Admin</th><th>Action</th><th>Target</th><th>IP</th><th>Time</th></tr></thead>
+                        <tbody>
+                            {% for entry in admin_audit_logs %}
+                            <tr>
+                                <td class="small">{{ entry.actor_email }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ entry.action|replace('_', ' ')|title }}</span></td>
+                                <td class="small text-muted">{{ entry.target_label or '-' }}</td>
+                                <td class="small">{{ entry.ip_address or '-' }}</td>
+                                <td class="small text-muted">{{ entry.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-success small mb-0"><i class="fas fa-check-circle me-1"></i>No admin actions recorded yet.</p>
+                {% endif %}
+            </div>
+
+            <div class="card-premium">
+                <h5 class="fw-bold mb-3"><i class="fas fa-user-lock me-2" style="color:var(--warning);"></i>Accounts With Failed Login Attempts</h5>
+                {% if recent_failed_logins %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>Email</th><th>Failed Attempts</th><th>Locked?</th></tr></thead>
+                        <tbody>
+                            {% for u in recent_failed_logins %}
+                            <tr>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.failed_login_attempts }}</td>
+                                <td>{% if u.is_locked() %}<span class="badge bg-danger">Locked</span>{% else %}<span class="text-muted">No</span>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-success small mb-0"><i class="fas fa-check-circle me-1"></i>No failed login attempts recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

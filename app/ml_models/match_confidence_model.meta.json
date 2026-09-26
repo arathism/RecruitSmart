@@ -1,0 +1,53 @@
+{
+  "trained_at_utc": "2026-08-15T05:40:15.492785+00:00",
+  "model_type": "LogisticRegression",
+  "feature_names": [
+    "skill_score",
+    "semantic_score",
+    "experience_score",
+    "authenticity_score"
+  ],
+  "n_train": 4800,
+  "n_test": 1200,
+  "test_accuracy": 0.6692,
+  "test_roc_auc": 0.7397,
+  "model_comparison": {
+    "GradientBoostingClassifier": {
+      "accuracy": 0.6692,
+      "roc_auc": 0.7281
+    },
+    "LogisticRegression": {
+      "accuracy": 0.6692,
+      "roc_auc": 0.7397
+    }
+  },
+  "classification_report": {
+    "0": {
+      "precision": 0.6799307958477508,
+      "recall": 0.6495867768595042,
+      "f1-score": 0.6644125105663568,
+      "support": 605.0
+    },
+    "1": {
+      "precision": 0.6591639871382636,
+      "recall": 0.6890756302521008,
+      "f1-score": 0.6737880032867708,
+      "support": 595.0
+    },
+    "accuracy": 0.6691666666666667,
+    "macro avg": {
+      "precision": 0.6695473914930072,
+      "recall": 0.6693312035558026,
+      "f1-score": 0.6691002569265638,
+      "support": 1200.0
+    },
+    "weighted avg": {
+      "precision": 0.6696339198626301,
+      "recall": 0.6691666666666667,
+      "f1-score": 0.669061192373562,
+      "support": 1200.0
+    }
+  },
+  "label_source": "synthetic (see module docstring) -- NOT real hiring outcome data",
+  "random_seed": 42
+}

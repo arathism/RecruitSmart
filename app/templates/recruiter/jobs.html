@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}My Jobs - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Recruiter</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('recruiter.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.post_job') }}"><i class="fas fa-plus-circle me-2"></i>Post Job</a>
+                    <a class="nav-link active" href="{{ url_for('recruiter.my_jobs') }}"><i class="fas fa-briefcase me-2"></i>My Jobs</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.skill_demand') }}"><i class="fas fa-chart-bar me-2"></i>Skill Demand</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0">My Jobs</h3>
+                <a href="{{ url_for('recruiter.post_job') }}" class="btn btn-premium"><i class="fas fa-plus-circle me-2"></i>Post New Job</a>
+            </div>
+
+            {% if jobs %}
+                <div class="card-premium">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead><tr><th>Title</th><th>Location</th><th>Applications</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
+                            <tbody>
+                                {% for job in jobs %}
+                                <tr>
+                                    <td><strong>{{ job.title }}</strong>{% if not job.get_required_skills_list() %} <span class="badge bg-danger" title="No required skills set -- AI matching is broken for this job"><i class="fas fa-exclamation-triangle"></i> No skills set</span>{% endif %}</td>
+                                    <td>{{ job.location or 'Remote' }}</td>
+                                    <td>{{ job.application_count }}</td>
+                                    <td><span class="badge {% if job.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">{{ job.status|title }}</span></td>
+                                    <td>{{ job.posted_at.strftime('%d %b %Y') }}</td>
+                                    <td class="text-nowrap">
+                                        <a href="{{ url_for('recruiter.view_candidates', job_id=job.id) }}" class="btn btn-sm btn-outline-primary">Candidates</a>
+                                        <a href="{{ url_for('recruiter.view_applications', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary">Applications</a>
+                                        <a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" class="btn btn-sm btn-outline-dark" title="Edit"><i class="fas fa-pen"></i></a>
+                                        <form method="POST" action="{{ url_for('recruiter.delete_job', job_id=job.id) }}" class="d-inline" onsubmit="return confirm('Delete \'{{ job.title }}\' permanently? This also removes its applications and match scores.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card-premium text-center py-5">
+                    <i class="fas fa-briefcase fs-1 text-muted mb-3"></i>
+                    <p class="text-muted mb-2">You haven't posted any jobs yet.</p>
+                    <a href="{{ url_for('recruiter.post_job') }}" class="btn btn-premium">Post Your First Job</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

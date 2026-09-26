@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}GitHub Verification - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link active" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications</a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-1"><i class="fab fa-github me-2"></i>GitHub Portfolio Verification</h3>
+            <p class="text-muted mb-4">Prove your resume skills with real, public code — not just keywords. RecruitSmart cross-checks your claimed skills against your actual GitHub activity and produces a Portfolio Authenticity Score recruiters can trust.</p>
+
+            <!-- Verify form -->
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-3">Connect Your GitHub</h5>
+                <form method="POST" action="{{ url_for('candidate.github_verify') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fab fa-github"></i></span>
+                        <input type="text" name="github_username" class="form-control" placeholder="Your GitHub username (e.g. octocat)"
+                               value="{{ verification.github_username if verification else '' }}" required>
+                        <button type="submit" class="btn btn-premium">{{ 'Re-verify' if verification else 'Verify Portfolio' }}</button>
+                    </div>
+                    <div class="form-text">We only read public profile and repository data. Nothing is posted on your behalf.</div>
+                </form>
+            </div>
+
+            {% if verification %}
+            <!-- Score summary -->
+            <div class="card-premium mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center mb-3 mb-md-0">
+                        <div class="score-circle {% if verification.portfolio_score >= 75 %}score-high{% elif verification.portfolio_score >= 50 %}score-medium{% else %}score-low{% endif %}">
+                            {{ verification.portfolio_score }}
+                        </div>
+                        <p class="mt-2 mb-0 fw-bold">{{ verification.portfolio_tier }}</p>
+                        <small class="text-muted">Portfolio Score</small>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if verification.avatar_url %}<img src="{{ verification.avatar_url }}" class="rounded-circle me-3" width="48" height="48" alt="avatar">{% endif %}
+                            <div>
+                                <h5 class="mb-0 fw-bold">@{{ verification.github_username }}</h5>
+                                <a href="{{ verification.profile_url }}" target="_blank" rel="noopener" class="small">View on GitHub <i class="fas fa-external-link-alt ms-1"></i></a>
+                            </div>
+                        </div>
+                        <div class="row g-2 mt-2">
+                            <div class="col-6 col-md-3"><div class="card-premium py-2 px-3 text-center"><div class="fw-bold">{{ verification.public_repos }}</div><small class="text-muted">Repos</small></div></div>
+                            <div class="col-6 col-md-3"><div class="card-premium py-2 px-3 text-center"><div class="fw-bold">{{ verification.total_stars }}</div><small class="text-muted">Stars</small></div></div>
+                            <div class="col-6 col-md-3"><div class="card-premium py-2 px-3 text-center"><div class="fw-bold">{{ verification.followers }}</div><small class="text-muted">Followers</small></div></div>
+                            <div class="col-6 col-md-3"><div class="card-premium py-2 px-3 text-center"><div class="fw-bold">{{ verification.authenticity_rate }}%</div><small class="text-muted">Authenticity</small></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Framework/library detection (beyond just languages) -->
+            {% if framework_skills_detected %}
+            <div class="card-premium mb-4">
+                <h6 class="fw-bold mb-2"><i class="fas fa-cubes me-2" style="color:var(--primary);"></i>Frameworks &amp; Libraries Confirmed From Your Code</h6>
+                <p class="text-muted small mb-3">GitHub's own stats only report programming languages. RecruitSmart goes further by reading actual dependency files (package.json, requirements.txt, etc.) in your recent repos to confirm real frameworks too.</p>
+                {% for skill in framework_skills_detected %}<span class="skill-tag">{{ skill|title }}</span>{% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Skill authenticity -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card-premium h-100">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-check-circle me-2" style="color:var(--success);"></i>Confirmed by Code</h6>
+                        {% if verification.get_confirmed_skills() %}
+                            {% for skill in verification.get_confirmed_skills() %}<span class="skill-tag">{{ skill|title }}</span>{% endfor %}
+                        {% else %}
+                            <p class="text-muted small mb-0">No resume skills matched your GitHub languages yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-premium h-100">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-exclamation-circle me-2" style="color:var(--warning);"></i>Unconfirmed Claims</h6>
+                        {% if verification.get_unconfirmed_skills() %}
+                            {% for skill in verification.get_unconfirmed_skills() %}<span class="skill-tag">{{ skill|title }}</span>{% endfor %}
+                            <p class="text-muted small mt-2 mb-0">These skills appear on your resume but weren't detected in your public repositories. Consider adding a project that demonstrates them.</p>
+                        {% else %}
+                            <p class="text-muted small mb-0">Every resume skill is backed by public code. Great job!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top repos -->
+            <div class="card-premium">
+                <h6 class="fw-bold mb-3"><i class="fas fa-star me-2" style="color:var(--warning);"></i>Top Repositories</h6>
+                {% if top_repos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead><tr><th>Repository</th><th>Language</th><th>Stars</th><th>Forks</th><th>Updated</th></tr></thead>
+                            <tbody>
+                                {% for repo in top_repos %}
+                                <tr>
+                                    <td><a href="{{ repo.url }}" target="_blank" rel="noopener">{{ repo.name }}</a><br><small class="text-muted">{{ repo.description[:80] }}</small></td>
+                                    <td>{{ repo.language }}</td>
+                                    <td>{{ repo.stars }}</td>
+                                    <td>{{ repo.forks }}</td>
+                                    <td>{{ repo.updated_at }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No public repositories found.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

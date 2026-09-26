@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Recruit Smart - AI-Powered Recruitment Platform{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="container">
+    <div class="row align-items-center min-vh-100 py-5">
+        <div class="col-lg-6">
+            <div class="animate-fade-in">
+                <div class="badge bg-gradient mb-3" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.2));color:var(--primary);padding:8px 20px;border-radius:50px;font-size:0.9rem;">
+                    <i class="fas fa-sparkles me-2"></i>AI-Powered Recruitment
+                </div>
+                <h1 class="display-3 fw-bold mb-4" style="line-height:1.2;">
+                    Find Your <span style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Dream Job</span> with AI
+                </h1>
+                <p class="lead mb-4" style="color:#64748b;font-size:1.2rem;">
+                    Smart resume parsing, intelligent job matching, and personalized career roadmaps powered by advanced AI.
+                </p>
+                <div class="d-flex gap-3 mb-5">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-premium btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Get Started Free
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg px-4" style="border-radius:16px;border-width:2px;">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </a>
+                </div>
+                <div class="d-flex gap-4">
+                    <div class="text-center">
+                        <h3 class="fw-bold mb-0" style="color:var(--primary);">{{ stats.total_jobs }}</h3>
+                        <small style="color:#64748b;">Active Jobs</small>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="fw-bold mb-0" style="color:var(--primary);">{{ stats.total_candidates }}</h3>
+                        <small style="color:#64748b;">Candidates</small>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="fw-bold mb-0" style="color:var(--primary);">{{ stats.avg_match_score ~ '%' if stats.avg_match_score else '—' }}</h3>
+                        <small style="color:#64748b;">Avg. AI Match Score</small>
+                    </div>
+                </div>
+                <p class="small mt-2" style="color:#94a3b8;"><i class="fas fa-database me-1"></i>Figures above are pulled live from this platform's own database, not sample/demo numbers.</p>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="animate-fade-in position-relative">
+                <div class="card-premium" style="transform:rotate(3deg);position:absolute;top:-20px;right:-20px;opacity:0.5;z-index:0;"></div>
+                <div class="card-premium position-relative" style="z-index:1;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0"><i class="fas fa-chart-line text-primary me-2"></i>Platform Analytics</h5>
+                        <span class="badge bg-secondary" title="Computed directly from the database on every page load">Real-time query</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span style="color:#64748b;">Avg. AI Job-Match Score</span>
+                            <span class="fw-bold" style="color:var(--primary);">{{ stats.avg_match_score ~ '%' if stats.avg_match_score else 'No matches run yet' }}</span>
+                        </div>
+                        {% if stats.avg_match_score %}
+                        <div class="progress" style="height:8px;border-radius:10px;background:#e2e8f0;">
+                            <div class="progress-bar" style="width:{{ stats.avg_match_score }}%;border-radius:10px;background:var(--gradient);"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span style="color:#64748b;">Avg. Resume ATS Score</span>
+                            <span class="fw-bold" style="color:var(--success);">{{ stats.avg_ats_score ~ '%' if stats.avg_ats_score else 'No resumes yet' }}</span>
+                        </div>
+                        {% if stats.avg_ats_score %}
+                        <div class="progress" style="height:8px;border-radius:10px;background:#e2e8f0;">
+                            <div class="progress-bar" style="width:{{ stats.avg_ats_score }}%;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="h4 fw-bold mb-0" style="color:var(--primary);">{{ stats.total_resumes }}</div>
+                            <small style="color:#64748b;">Resumes Uploaded</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 fw-bold mb-0" style="color:var(--secondary);">{{ stats.total_applications }}</div>
+                            <small style="color:#64748b;">Applications</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 fw-bold mb-0" style="color:var(--accent);">{{ stats.total_github_verifications }}</div>
+                            <small style="color:#64748b;">GitHub Verified</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">Why Choose <span style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Recruit Smart?</span></h2>
+            <p class="lead" style="color:#64748b;">Advanced AI technology for modern recruitment</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card-premium h-100">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width:60px;height:60px;background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));">
+                            <i class="fas fa-file-alt fs-3" style="color:var(--primary);"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-3">Smart Resume Parsing</h4>
+                    <p style="color:#64748b;">AI-powered NLP extraction with OCR support. Parse PDF, DOCX, TXT with 99% accuracy.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-premium h-100">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width:60px;height:60px;background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(5,150,105,0.15));">
+                            <i class="fas fa-brain fs-3" style="color:var(--success);"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-3">Intelligent Matching</h4>
+                    <p style="color:#64748b;">Semantic similarity analysis with bias-free algorithms. Get accurate match scores in seconds.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-premium h-100">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width:60px;height:60px;background:linear-gradient(135deg,rgba(6,182,212,0.15),rgba(8,145,178,0.15));">
+                            <i class="fas fa-route fs-3" style="color:var(--accent);"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-3">Career Intelligence</h4>
+                    <p style="color:#64748b;">Personalized roadmaps with knowledge graphs. AI-generated learning paths to reach your dream role.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">How It <span style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Works</span></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:80px;height:80px;background:var(--gradient);color:white;font-size:2rem;font-weight:800;">1</div>
+                    <h5 class="fw-bold">Upload Resume</h5>
+                    <p style="color:#64748b;">Upload your resume in any format</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:80px;height:80px;background:var(--gradient);color:white;font-size:2rem;font-weight:800;">2</div>
+                    <h5 class="fw-bold">AI Analysis</h5>
+                    <p style="color:#64748b;">Get ATS score and AI suggestions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:80px;height:80px;background:var(--gradient);color:white;font-size:2rem;font-weight:800;">3</div>
+                    <h5 class="fw-bold">Job Matching</h5>
+                    <p style="color:#64748b;">AI matches you with perfect jobs</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:80px;height:80px;background:var(--gradient);color:white;font-size:2rem;font-weight:800;">4</div>
+                    <h5 class="fw-bold">Get Hired</h5>
+                    <p style="color:#64748b;">Apply and land your dream job</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Jobs -->
+    <div class="py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">Featured <span style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Jobs</span></h2>
+        </div>
+        <div class="row g-4">
+            {% for job in featured_jobs %}
+            <div class="col-md-4">
+                <div class="card-premium h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="fw-bold mb-0">{{ job.title }}</h5>
+                        {% if job.is_remote %}<span class="badge bg-success">Remote</span>{% endif %}
+                    </div>
+                    <p class="text-muted mb-3">{{ job.description[:100] }}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ job.location or "Not specified" }}</span>
+                        <span class="fw-bold" style="color:var(--primary);">{{ job.get_salary_display() }}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center">
+                <p class="text-muted">No featured jobs yet. Check back soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="py-5">
+        <div class="card-premium text-center p-5" style="background:var(--gradient);color:white;border:none;">
+            <h2 class="fw-bold mb-3">Ready to Transform Your Career?</h2>
+            <p class="lead mb-4">Join 100,000+ professionals using AI to find their dream jobs</p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5" style="border-radius:16px;font-weight:600;">
+                <i class="fas fa-rocket me-2"></i>Get Started Free
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

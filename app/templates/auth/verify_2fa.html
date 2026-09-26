@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Two-Factor Verification - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card-premium">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Two-Factor Verification</h2>
+                    <p style="color:#64748b;">Enter the 6-digit code from your authenticator app for<br><strong>{{ email }}</strong></p>
+                </div>
+
+                <div class="text-center mb-3">
+                    <button type="button" id="new-device-toggle" class="btn btn-outline-secondary btn-sm" style="border-radius:20px;">
+                        New device? Scan QR code instead
+                    </button>
+                </div>
+
+                <div id="new-device-panel" style="display:none;">
+                    <div class="text-center mb-3">
+                        <div id="qr-code" style="display:inline-block; padding:12px; background:#fff; border-radius:12px; border:1px solid #e2e8f0;"></div>
+                    </div>
+                    <div class="mb-4 text-center">
+                        <p style="color:#64748b; margin-bottom:4px;">Can't scan? Enter this key manually:</p>
+                        <code style="font-size:1.05rem; letter-spacing:0.05em;">{{ secret }}</code>
+                    </div>
+                    <p style="color:#64748b; font-size:0.9rem;" class="text-center mb-4">
+                        Scan this in Google Authenticator, Authy, or any TOTP app on the new device.
+                        It's the same account secret, so once scanned this device will generate valid
+                        codes too — enter the current 6-digit code below to finish signing in.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.verify_2fa') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Authentication Code</label>
+                        <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                               class="form-control form-control-lg text-center" style="border-radius:12px; letter-spacing:0.4em; font-size:1.4rem;"
+                               placeholder="000000" autofocus required>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100 btn-lg">Verify</button>
+                </form>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('auth.login') }}" style="color:var(--primary);text-decoration:none;">Back to sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    (function () {
+        var toggle = document.getElementById('new-device-toggle');
+        var panel = document.getElementById('new-device-panel');
+        var qrEl = document.getElementById('qr-code');
+        var rendered = false;
+        if (!toggle || !panel) return;
+        toggle.addEventListener('click', function () {
+            var showing = panel.style.display !== 'none';
+            panel.style.display = showing ? 'none' : 'block';
+            toggle.textContent = showing ? 'New device? Scan QR code instead' : 'Hide QR code';
+            if (!showing && !rendered && typeof QRCode !== 'undefined' && qrEl) {
+                new QRCode(qrEl, {
+                    text: {{ otpauth_uri | tojson }},
+                    width: 200,
+                    height: 200
+                });
+                rendered = true;
+            }
+        });
+    })();
+</script>
+{% endblock %}

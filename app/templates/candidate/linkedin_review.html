@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}LinkedIn Review - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link active" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-1"><i class="fab fa-linkedin me-2" style="color:#0A66C2;"></i>LinkedIn Profile Review</h3>
+            <p class="text-muted small mb-4">This does not fetch or scrape your live LinkedIn profile &mdash; there's no public API for that, and automated scraping violates LinkedIn's Terms of Service. Follow the two steps below instead &mdash; it takes about 15 seconds.</p>
+
+            <div class="card-premium mb-4">
+                <div class="mb-4">
+                    <label class="form-label fw-bold"><span class="badge bg-primary rounded-pill me-2">1</span>Open Your Profile</label>
+                    <div class="d-flex gap-2">
+                        <input type="url" id="li_profile_url" class="form-control" placeholder="Paste your LinkedIn profile link here, e.g. https://linkedin.com/in/yourname">
+                        <button type="button" id="li_open_btn" class="btn btn-outline-primary text-nowrap"><i class="fas fa-external-link-alt me-1"></i>Open in New Tab</button>
+                    </div>
+                    <div class="form-text">Opens your profile in a new tab so you can select and copy its text. We never read or fetch this link ourselves &mdash; it's just a convenience shortcut.</div>
+                </div>
+
+                <form method="POST" action="{{ url_for('candidate.linkedin_review') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><span class="badge bg-primary rounded-pill me-2">2</span>Paste Your Profile Text Here</label>
+
+                        <textarea name="full_profile_text" id="li_paste_box" class="form-control" rows="8"
+                                  placeholder="After opening your profile above: click on the page → Ctrl+A (selects everything) → Ctrl+C (copies) → click here and Ctrl+V (pastes). We'll auto-detect your headline, About, Experience, and Skills sections from LinkedIn's own section headers."></textarea>
+                        <div class="form-text">One paste, one result &mdash; no need to fill in the fields below unless something comes out wrong.</div>
+                    </div>
+
+                    <details class="mb-3">
+                        <summary class="fw-bold" style="cursor:pointer;color:var(--primary);">Or fill in sections manually / fix anything mis-detected</summary>
+                        <div class="mt-3">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Headline</label>
+                                <input type="text" name="headline" class="form-control" placeholder="e.g. CS Student | Cybersecurity &amp; Full-Stack Dev | Python, React, AWS">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">About Section</label>
+                                <textarea name="about_text" class="form-control" rows="3" placeholder="Paste your About/summary text here..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">One Experience or Project Entry</label>
+                                <textarea name="experience_text" class="form-control" rows="3" placeholder="Paste one experience/project description with its bullet points..."></textarea>
+                            </div>
+                            <div class="mb-0" style="max-width:220px;">
+                                <label class="form-label fw-bold">Number of Skills Listed</label>
+                                <input type="number" name="skills_count" class="form-control" placeholder="e.g. 12">
+                            </div>
+                        </div>
+                    </details>
+
+                    <button type="submit" class="btn btn-premium"><i class="fas fa-magic me-2"></i>Audit My Profile</button>
+                </form>
+            </div>
+
+            {% if url_only_detected %}
+            <div class="card-premium mb-4" style="border-left:5px solid var(--warning); background:rgba(245,158,11,0.06);">
+                <h5 class="fw-bold mb-2"><i class="fas fa-info-circle me-2" style="color:var(--warning);"></i>That's just your profile link, not your profile text</h5>
+                <p class="mb-3">A URL has no readable content in it for us to analyze &mdash; we can't fetch what's behind a link (see the note above about why). Here's how to get the actual text:</p>
+                <ol class="mb-0">
+                    <li class="mb-2">Open <strong>{{ request.form.get('full_profile_text', '') }}</strong> in your browser and make sure you're logged in</li>
+                    <li class="mb-2">Click anywhere on the profile page, press <strong>Ctrl+A</strong> (or Cmd+A on Mac) to select everything, then <strong>Ctrl+C</strong> to copy</li>
+                    <li class="mb-2">Come back here and paste (<strong>Ctrl+V</strong>) into the box above, replacing the link</li>
+                </ol>
+            </div>
+            {% endif %}
+
+            {% if result %}
+            {% if detected %}
+            <div class="card-premium mb-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-search me-2" style="color:var(--primary);"></i>What We Detected From Your Paste</h6>
+                <p class="text-muted small mb-3">Check this against your real profile &mdash; if anything looks wrong or empty, use "Or fill in sections manually" above to correct it, since that always overrides auto-detection.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong class="small text-muted d-block">Headline</strong>
+                        <span>{{ detected.headline or "— nothing detected —" }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong class="small text-muted d-block">Skills Count</strong>
+                        <span>{{ detected.skills_count }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong class="small text-muted d-block">About Section</strong>
+                        <span>{{ detected.about_text[:150] ~ ('...' if detected.about_text|length > 150 else '') if detected.about_text else "— nothing detected —" }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong class="small text-muted d-block">Experience Entry</strong>
+                        <span>{{ detected.experience_text[:150] ~ ('...' if detected.experience_text|length > 150 else '') if detected.experience_text else "— nothing detected —" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card-premium mb-4" style="background:linear-gradient(135deg,#0f172a,#1e293b);color:white;">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <p class="text-uppercase small mb-1" style="color:#94a3b8;letter-spacing:1px;">Recruiter's 10-Second Impression</p>
+                        <h4 class="fw-bold mb-0" style="max-width:600px;">&ldquo;{{ result.impression }}&rdquo;</h4>
+                    </div>
+                    <div class="score-circle {% if result.score >= 80 %}score-high{% elif result.score >= 50 %}score-medium{% else %}score-low{% endif %}" style="width:80px;height:80px;font-size:1.3rem;">
+                        {{ result.score }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-premium">
+                <h6 class="fw-bold mb-3"><i class="fas fa-bolt me-2" style="color:var(--warning);"></i>Quick Wins &mdash; Do These First</h6>
+                {% for win in result.quick_wins %}
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;background:var(--gradient);color:white;font-weight:700;font-size:0.85rem;">{{ loop.index }}</span>
+                        <p class="mb-0">{{ win.text }}</p>
+                    </div>
+                {% else %}
+                    <p class="text-success mb-0"><i class="fas fa-check-circle me-1"></i>No major gaps found across headline, About, experience, and skills.</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('li_open_btn').addEventListener('click', function () {
+        var urlInput = document.getElementById('li_profile_url');
+        var url = urlInput.value.trim();
+        if (!url) {
+            urlInput.focus();
+            urlInput.classList.add('is-invalid');
+            return;
+        }
+        urlInput.classList.remove('is-invalid');
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+        }
+        window.open(url, '_blank', 'noopener');
+        // Bring focus to the paste box so the next thing the user does
+        // naturally is paste -- makes the two-step flow feel continuous.
+        setTimeout(function () {
+            document.getElementById('li_paste_box').focus();
+        }, 300);
+    });
+</script>
+{% endblock %}

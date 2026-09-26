@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Profile - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card-premium text-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width:100px;height:100px;background:var(--gradient);color:white;font-size:2.5rem;font-weight:800;">
+                    {{ current_user.get_initials() }}
+                </div>
+                <h4 class="fw-bold">{{ current_user.get_full_name() }}</h4>
+                <p class="text-muted">{{ current_user.email }}</p>
+                <span class="badge" style="background:var(--gradient);">{{ current_user.role.title() }}</span>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card-premium mb-4">
+                <h4 class="fw-bold mb-4">Edit Profile</h4>
+                <form method="POST" action="{{ url_for('auth.profile') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ current_user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ current_user.last_name }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Phone</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ current_user.phone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Location</label>
+                        <input type="text" name="location" class="form-control" value="{{ current_user.location or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Bio</label>
+                        <textarea name="bio" class="form-control" rows="3">{{ current_user.bio or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-premium">Update Profile</button>
+                </form>
+            </div>
+            <div class="card-premium">
+                <h4 class="fw-bold mb-4">Change Password</h4>
+                <form method="POST" action="{{ url_for('auth.change_password') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Password</label>
+                        <input type="password" name="current_password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">New Password</label>
+                        <input type="password" name="new_password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Confirm New Password</label>
+                        <input type="password" name="confirm_password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-premium">Change Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ roadmap.target_role }} Roadmap - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">{{ roadmap.target_role }}</h3>
+            <p class="text-muted mb-0">{{ roadmap.target_industry or 'Any industry' }} &middot; Est. {{ roadmap.estimated_months }} months &middot; Market demand: {{ roadmap.market_demand|title }} &middot; Salary range: {{ roadmap.salary_range }}</p>
+        </div>
+        <a href="{{ url_for('candidate.career_roadmap') }}" class="btn btn-outline-secondary">Back</a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card-premium text-center">
+                <div class="score-circle {% if roadmap.readiness_score >= 70 %}score-high{% elif roadmap.readiness_score >= 40 %}score-medium{% else %}score-low{% endif %}">
+                    {{ roadmap.readiness_score }}%
+                </div>
+                <p class="mt-3 mb-0 fw-bold">Readiness Score</p>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card-premium h-100">
+                <h5 class="fw-bold mb-2"><i class="fas fa-robot me-2" style="color:var(--primary);"></i>AI Analysis</h5>
+                <p class="mb-0">{{ roadmap.ai_analysis }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-premium mb-4">
+        <h5 class="fw-bold mb-4"><i class="fas fa-flag-checkered me-2" style="color:var(--accent);"></i>Milestones</h5>
+        {% for m in roadmap.get_milestones_list() %}
+            <div class="timeline-item {% if m.completed %}completed{% endif %}">
+                <h6 class="fw-bold mb-1">{{ m.title }} <small class="text-muted fw-normal">({{ m.duration }})</small></h6>
+                <p class="mb-0 text-muted">{{ m.description }}</p>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No milestones available.</p>
+        {% endfor %}
+    </div>
+
+    <div class="card-premium">
+        <h5 class="fw-bold mb-3"><i class="fas fa-graduation-cap me-2" style="color:var(--primary);"></i>Recommended Learning Paths</h5>
+        {% for lp in roadmap.get_learning_paths_list() %}
+            <div class="gap-card">
+                <strong>{{ lp.skill }}</strong>
+                <span class="badge bg-secondary ms-2">{{ lp.difficulty }}</span>
+                <span class="text-muted small ms-2">Est. {{ lp.estimated_time }}</span>
+                <div class="mt-2">
+                    {% for res in lp.resources %}
+                        <span class="skill-tag">{{ res }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No skill gaps to close — you're ready for this role!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

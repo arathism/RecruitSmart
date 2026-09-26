@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}Recruit Smart{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <style>
+        /* Design system: "verification / audit" identity -- built around
+           what actually differentiates this platform (GitHub-verified
+           claims, authenticity screening, trained-model cross-checks),
+           not a generic SaaS purple gradient. Ink + paper + a single
+           verification-green accent, serif display type for authority,
+           monospace for every score/stat (reads like a verification code
+           or audit-log entry, not a marketing number). */
+        :root {
+            --ink: #1B2129;
+            --ink-soft: #545B62;
+            --paper: #EDEEE7;
+            --surface: #FFFFFF;
+            --line: #D9D7CC;
+            --verified: #1E6E58;
+            --verified-dark: #14503F;
+            --verified-wash: #DFEEE7;
+            --flag: #A8721F;
+            --flag-wash: #F3E7D3;
+            --risk: #9C3B32;
+            --risk-wash: #F3DEDB;
+            --primary: var(--verified);
+            --primary-dark: var(--verified-dark);
+            --secondary: var(--ink-soft);
+            --accent: var(--verified);
+            --success: var(--verified);
+            --warning: var(--flag);
+            --danger: var(--risk);
+            --gradient: var(--ink);
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); }
+        h1, h2, h3, h4, .navbar-brand, .display-heading { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
+        .navbar { background: var(--ink) !important; box-shadow: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .navbar-brand { font-weight: 600; font-size: 1.4rem; }
+        .navbar-brand i { color: var(--verified); }
+        .nav-link { font-weight: 500; transition: opacity 0.2s; }
+        .nav-link:hover { opacity: 0.75; transform: none; }
+        .btn-premium { background: var(--verified); border: 1px solid var(--verified); color: white; font-weight: 600; padding: 10px 24px; border-radius: 8px; transition: all 0.2s; }
+        .btn-premium:hover { background: var(--verified-dark); border-color: var(--verified-dark); color: white; transform: none; box-shadow: none; }
+        .card-premium { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 2px rgba(27,33,41,0.04); padding: 24px; transition: border-color 0.2s; }
+        .card-premium:hover { transform: none; border-color: #B9C4BE; box-shadow: 0 2px 8px rgba(27,33,41,0.06); }
+
+        /* Verification-seal score badge: double ring + monospace figure,
+           standing in for the old flat gradient disc -- the signature
+           element, since "is this claim verified" is the whole thesis. */
+        .score-circle {
+            width: 116px; height: 116px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-mono); font-size: 1.8rem; font-weight: 600;
+            margin: 0 auto; position: relative; background: var(--surface);
+            border: 2px solid currentColor;
+        }
+        .score-circle::before {
+            content: ''; position: absolute; inset: 7px; border-radius: 50%;
+            border: 1px dashed currentColor; opacity: 0.45;
+        }
+        .score-high { color: var(--verified); }
+        .score-medium { color: var(--flag); }
+        .score-low { color: var(--risk); }
+        .skill-tag { background: var(--verified-wash); color: var(--verified-dark); border: 1px solid rgba(30,110,88,0.25); padding: 5px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; font-family: var(--font-mono); display: inline-block; margin: 4px; }
+        .gap-card { border-left: 3px solid var(--flag); background: var(--flag-wash); padding: 16px; border-radius: 8px; margin-bottom: 12px; }
+        .footer { background: var(--ink); color: #A9AFB6; padding: 60px 0 30px; margin-top: 80px; }
+        .flash-messages { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .dashboard-sidebar { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; height: fit-content; }
+        .dashboard-sidebar .nav-link { border-radius: 8px; padding: 12px 16px; margin-bottom: 4px; color: var(--ink-soft); }
+        .dashboard-sidebar .nav-link:hover, .dashboard-sidebar .nav-link.active { background: var(--verified-wash); color: var(--verified-dark); opacity: 1; }
+        .stat-card { text-align: center; padding: 20px; }
+        .stat-card .stat-value { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 600; color: var(--ink); -webkit-text-fill-color: initial; background: none; }
+        .timeline-item { position: relative; padding-left: 40px; margin-bottom: 30px; }
+        .timeline-item::before { content: ''; position: absolute; left: 10px; top: 0; bottom: -30px; width: 2px; background: var(--line); }
+        .timeline-item::after { content: ''; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink-soft); }
+        .timeline-item.completed::after { background: var(--verified); border-color: var(--verified); }
+        .progress-gradient { background: var(--verified); }
+        .notification-badge { position: absolute; top: -5px; right: -5px; background: var(--risk); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+        [data-bs-theme="dark"] body { background: #14181E; color: #E7E5DD; }
+        [data-bs-theme="dark"] .card-premium { background: #1E242C; border-color: #303841; color: #E7E5DD; }
+        [data-bs-theme="dark"] .dashboard-sidebar { background: #1E242C; border-color: #303841; }
+        [data-bs-theme="dark"] .navbar { background: #14181E !important; }
+        [data-bs-theme="dark"] .score-circle { background: #1E242C; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-brain me-2"></i>Recruit Smart
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home me-1"></i>Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-info-circle me-1"></i>About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.contact') }}"><i class="fas fa-envelope me-1"></i>Contact</a></li>
+                </ul>
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item me-3">
+                        <button class="btn btn-sm btn-outline-light rounded-pill" onclick="toggleTheme()">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                        </button>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width:35px;height:35px;background:rgba(255,255,255,0.2);font-weight:700;">
+                                    {{ current_user.get_initials() }}
+                                </div>
+                                <span>{{ current_user.first_name }}</span>
+                                {% if current_user.get_notification_count() > 0 %}
+                                    <span class="notification-badge">{{ current_user.get_notification_count() }}</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {% if current_user.is_candidate() %}
+                                    <li><a class="dropdown-item" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a></li>
+                                {% elif current_user.is_recruiter() %}
+                                    <li><a class="dropdown-item" href="{{ url_for('recruiter.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('recruiter.post_job') }}"><i class="fas fa-plus-circle me-2"></i>Post Job</a></li>
+                                {% elif current_user.is_admin() %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.users') }}"><i class="fas fa-users-cog me-2"></i>Manage Users</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.jobs') }}"><i class="fas fa-briefcase me-2"></i>All Jobs</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.analytics') }}"><i class="fas fa-chart-line me-2"></i>Analytics</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.security_center') }}"><i class="fas fa-shield-alt me-2"></i>Security Center</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a class="btn btn-outline-light rounded-pill px-4 me-2" href="{{ url_for('auth.login') }}">Sign In</a></li>
+                        <li class="nav-item"><a class="btn btn-premium" href="{{ url_for('auth.register') }}">Get Started</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show animate-fade-in shadow">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h4 class="text-white mb-3"><i class="fas fa-brain me-2"></i>Recruit Smart</h4>
+                    <p>AI-powered recruitment platform connecting talent with opportunity through intelligent matching.</p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="text-white mb-3">Platform</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('main.about') }}" class="text-decoration-none">About</a></li>
+                        <li><a href="{{ url_for('main.contact') }}" class="text-decoration-none">Contact</a></li>
+                        <li><a href="{{ url_for('main.privacy') }}" class="text-decoration-none">Privacy</a></li>
+                        <li><a href="{{ url_for('main.terms') }}" class="text-decoration-none">Terms</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="text-white mb-3">For Candidates</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none">Register</a></li>
+                        <li><a href="#" class="text-decoration-none">Browse Jobs</a></li>
+                        <li><a href="#" class="text-decoration-none">Career Roadmap</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="text-white mb-3">For Recruiters</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none">Post Jobs</a></li>
+                        <li><a href="#" class="text-decoration-none">Find Talent</a></li>
+                        <li><a href="#" class="text-decoration-none">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="text-white mb-3">Connect</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-white fs-5"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center">
+                <p class="mb-0">&copy; {{ current_year }} Recruit Smart. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    {% include '_help_widget.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/help_widget.js') }}"></script>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.getAttribute('data-bs-theme') === 'light') {
+                html.setAttribute('data-bs-theme', 'dark');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.setAttribute('data-bs-theme', 'light');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        const icon = document.getElementById('theme-icon');
+        if (savedTheme === 'dark') {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        // Auto-dismiss flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

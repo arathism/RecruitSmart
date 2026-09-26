@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Candidate Dashboard - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications {% if current_user.get_notification_count() > 0 %}<span class="badge bg-danger ms-2">{{ current_user.get_notification_count() }}</span>{% endif %}</a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Dashboard</h3>
+
+            <!-- Stats -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <div class="stat-value">{{ resumes|length }}</div>
+                        <small class="text-muted">Resumes</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <div class="stat-value">{{ applications|length }}</div>
+                        <small class="text-muted">Applications</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <div class="stat-value">{{ roadmaps|length }}</div>
+                        <small class="text-muted">Roadmaps</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-premium stat-card">
+                        <div class="stat-value">{{ current_user.get_notification_count() }}</div>
+                        <small class="text-muted">Notifications</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Resume -->
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-cloud-upload-alt me-2" style="color:var(--primary);"></i>Upload Resume</h5>
+                <form method="POST" action="{{ url_for('candidate.upload_resume') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="input-group">
+                        <input type="file" name="resume" class="form-control" accept=".pdf,.docx,.txt" required>
+                        <button type="submit" class="btn btn-premium">Upload & Analyze</button>
+                    </div>
+                    <div class="form-text">Supported formats: PDF, DOCX, TXT (Max 5MB)</div>
+                </form>
+            </div>
+
+            <!-- My Resumes -->
+            <div class="card-premium mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-file-alt me-2" style="color:var(--primary);"></i>My Resumes</h5>
+                    <a href="{{ url_for('candidate.build_resume') }}" class="btn btn-sm btn-outline-primary">Build Resume</a>
+                </div>
+                {% if resumes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>ATS Score</th>
+                                    <th>Skills</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for resume in resumes %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-file-{{ 'pdf' if resume.file_type == 'pdf' else 'word' if resume.file_type == 'docx' else 'alt' }} me-2" style="color:var(--primary);"></i>
+                                            <span>{{ resume.original_filename[:30] }}...</span>
+                                            {% if resume.is_primary %}<span class="badge bg-success ms-2">Primary</span>{% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if resume.ats_score >= 80 %}bg-success{% elif resume.ats_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ resume.ats_score }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% for skill in resume.get_skills_list()[:5] %}
+                                            <span class="skill-tag">{{ skill }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('candidate.view_resume', resume_id=resume.id) }}" class="btn btn-sm btn-primary">View</a>
+                                        <a href="{{ url_for('candidate.download_resume_report', resume_id=resume.id) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf"></i></a>
+                                        <form action="{{ url_for('candidate.delete_resume', resume_id=resume.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this resume? This cannot be undone.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-upload fs-1 text-muted mb-3"></i>
+                        <p class="text-muted">No resumes uploaded yet. Upload your resume to get started!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Resume Ranking -->
+            {% if resume_rank %}
+            <div class="card-premium mb-4">
+                <div class="d-flex align-items-center gap-4 flex-wrap">
+                    <div class="text-center">
+                        <div class="score-circle {% if resume_percentile >= 80 %}score-high{% elif resume_percentile >= 50 %}score-medium{% else %}score-low{% endif %}" style="width:80px;height:80px;font-size:1.3rem;">
+                            #{{ resume_rank }}
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1"><i class="fas fa-ranking-star me-2" style="color:var(--warning);"></i>Your Resume Ranking</h5>
+                        <p class="mb-0 text-muted">You rank <strong>#{{ resume_rank }}</strong> out of <strong>{{ resume_rank_total }}</strong> candidate resumes on this platform, by ATS score &mdash; top <strong>{{ 100 - resume_percentile + 1 if resume_percentile < 100 else 1 }}%</strong>.</p>
+                        <small class="text-muted">This is your own standing only &mdash; other candidates' scores and identities are never shown to you.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- GitHub Portfolio Verification -->
+            <div class="card-premium mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fab fa-github me-2"></i>GitHub Portfolio Verification</h5>
+                    <a href="{{ url_for('candidate.github_verify') }}" class="btn btn-sm btn-outline-primary">
+                        {{ 'Re-verify' if github_verification else 'Verify Now' }}
+                    </a>
+                </div>
+                {% if github_verification %}
+                    <div class="d-flex align-items-center gap-4 flex-wrap">
+                        <div class="score-circle {% if github_verification.portfolio_score >= 75 %}score-high{% elif github_verification.portfolio_score >= 50 %}score-medium{% else %}score-low{% endif %}" style="width:80px;height:80px;font-size:1.3rem;">
+                            {{ github_verification.portfolio_score }}
+                        </div>
+                        <div>
+                            <p class="mb-1"><strong>@{{ github_verification.github_username }}</strong> &middot; {{ github_verification.portfolio_tier }} tier</p>
+                            <p class="mb-1 text-muted small">{{ github_verification.authenticity_rate }}% of your resume skills are backed by public code.</p>
+                            <a href="{{ github_verification.profile_url }}" target="_blank" rel="noopener" class="small">View GitHub Profile <i class="fas fa-external-link-alt ms-1"></i></a>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Connect your GitHub account so recruiters can see AI-verified proof of your skills, not just resume claims.</p>
+                {% endif %}
+            </div>
+
+            <!-- Recommended Jobs -->
+            <div class="card-premium">
+                <h5 class="fw-bold mb-1"><i class="fas fa-star me-2" style="color:var(--warning);"></i>Recommended For You</h5>
+                <p class="text-muted small mb-3">{% if recommended_job_scores %}Ranked by how well each job's required skills overlap with your resume.{% else %}Upload a resume to get jobs ranked by skill match instead of just newest-first.{% endif %}</p>
+                {% if recommended_jobs %}
+                    <div class="list-group list-group-flush">
+                        {% for job in recommended_jobs %}
+                        <a href="{{ url_for('candidate.view_job', job_id=job.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">{{ job.title }}</h6>
+                                <small class="text-muted">{{ job.location or "Remote" }} | {{ job.get_salary_display() }}</small>
+                            </div>
+                            {% if recommended_job_scores.get(job.id) is not none %}
+                                <span class="badge bg-{{ 'success' if recommended_job_scores[job.id] >= 70 else 'warning text-dark' if recommended_job_scores[job.id] >= 40 else 'secondary' }}">{{ recommended_job_scores[job.id] }}% skill match</span>
+                            {% else %}
+                                <span class="badge bg-primary">View</span>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No jobs available at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

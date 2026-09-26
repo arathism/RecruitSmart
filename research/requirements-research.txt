@@ -1,0 +1,14 @@
+# Optional dependencies for the research/ evaluation pipeline ONLY.
+# The live Flask app does not need any of these -- do not merge into the
+# project's top-level requirements.txt.
+#
+# numpy and scikit-learn are already required by the top-level
+# requirements.txt (the live app's matcher depends on them), so they're
+# not repeated here.
+
+matplotlib>=3.8.0      # research/generate_figures.py
+scipy>=1.11.0           # research/statistical_tests.py (Wilcoxon p-value) -- optional, has a fallback if absent
+
+# Fully optional, heavy (pulls in torch). Only needed to include the
+# SBERT baseline in baseline_comparison.py / full_evaluation.py / figures.
+# sentence-transformers>=2.2.0

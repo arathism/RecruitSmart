@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card-premium mb-4">
+                <h3 class="fw-bold mb-1">{{ job.title }}</h3>
+                <p class="text-muted mb-3">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ job.location or 'Remote' }}
+                    {% if job.is_remote %}<span class="badge bg-info ms-1">Remote</span>{% endif %}
+                    &nbsp;&middot;&nbsp;<i class="fas fa-briefcase me-1"></i>{{ job.job_type|replace('_', ' ')|title }}
+                    &nbsp;&middot;&nbsp;{{ job.get_salary_display() }}
+                </p>
+                <h6 class="fw-bold">Description</h6>
+                <p>{{ job.description }}</p>
+                {% if job.requirements %}
+                    <h6 class="fw-bold mt-3">Requirements</h6>
+                    <p>{{ job.requirements }}</p>
+                {% endif %}
+                {% if job.responsibilities %}
+                    <h6 class="fw-bold mt-3">Responsibilities</h6>
+                    <p>{{ job.responsibilities }}</p>
+                {% endif %}
+                <h6 class="fw-bold mt-3">Required Skills</h6>
+                {% for skill in job.get_required_skills_list() %}<span class="skill-tag">{{ skill }}</span>{% endfor %}
+                {% if job.get_preferred_skills_list() %}
+                    <h6 class="fw-bold mt-3">Preferred Skills</h6>
+                    {% for skill in job.get_preferred_skills_list() %}<span class="skill-tag">{{ skill }}</span>{% endfor %}
+                {% endif %}
+            </div>
+
+            {% if not existing_application %}
+            <div class="card-premium">
+                <h5 class="fw-bold mb-3"><i class="fas fa-paper-plane me-2" style="color:var(--primary);"></i>Apply for this Job</h5>
+                <form method="POST" action="{{ url_for('candidate.apply_job', job_id=job.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label">Resume</label>
+                        <select name="resume_id" class="form-select" {% if resumes %}required{% endif %}>
+                            {% for r in resumes %}
+                                <option value="{{ r.id }}" {% if r.is_primary %}selected{% endif %}>{{ r.original_filename }}{% if r.is_primary %} (Primary){% endif %}</option>
+                            {% else %}
+                                <option value="" disabled selected>No resume uploaded — upload one from your dashboard first</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cover Letter (optional)</label>
+                        <textarea name="cover_letter" class="form-control" rows="4" placeholder="Tell the recruiter why you're a great fit..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-premium" {% if not resumes %}disabled{% endif %}>Submit Application</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="card-premium">
+                <h5 class="fw-bold mb-2"><i class="fas fa-check-circle me-2" style="color:var(--success);"></i>Application Submitted</h5>
+                <p class="mb-0 text-muted">Status: <span class="badge bg-primary">{{ existing_application.status|title }}</span> &middot; Applied {{ existing_application.applied_at.strftime('%d %b %Y') }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card-premium">
+                <h5 class="fw-bold mb-3"><i class="fas fa-robot me-2" style="color:var(--primary);"></i>AI Match Score</h5>
+                {% if match_score %}
+                    <div class="score-circle {% if match_score.overall_score >= 80 %}score-high{% elif match_score.overall_score >= 60 %}score-medium{% else %}score-low{% endif %}" style="width:90px;height:90px;font-size:1.5rem;">
+                        {{ match_score.overall_score }}%
+                    </div>
+                    <p class="text-center mt-2 mb-3"><span class="badge bg-{{ match_score.get_score_color() }}">{{ match_score.recommendation|replace('_', ' ')|title }}</span></p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('candidate.match_job', job_id=job.id) }}" class="btn btn-sm btn-outline-primary">View Full Match Result</a>
+                        <a href="{{ url_for('candidate.download_match_report', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf me-1"></i>Download PDF</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted small">Upload a primary resume to see how well you match this job.</p>
+                    <a href="{{ url_for('candidate.match_job', job_id=job.id) }}" class="btn btn-premium w-100">Run AI Match</a>
+                {% endif %}
+            </div>
+
+            <div class="card-premium mt-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-magic me-2" style="color:var(--accent);"></i>Get Ready to Apply</h6>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('candidate.generate_job_cover_letter', job_id=job.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-envelope-open-text me-1"></i>Generate Cover Letter</a>
+                    <a href="{{ url_for('candidate.job_interview_prep', job_id=job.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-comments me-1"></i>Interview Prep for This Role</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

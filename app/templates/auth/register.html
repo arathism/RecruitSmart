@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% block title %}Get Started - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-premium">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Create Account</h2>
+                    <p style="color:#64748b;">Join thousands of professionals</p>
+                </div>
+                <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="otp_token" id="otp_token" value="">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-user text-secondary"></i></span>
+                            <input type="text" name="full_name" id="full_name" class="form-control" style="border-radius:0 12px 12px 0;" value="{{ full_name or '' }}" required minlength="2">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Email Address</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-envelope text-secondary"></i></span>
+                            <input type="email" name="email" id="email" class="form-control" value="{{ email or '' }}" required>
+                            <button class="btn btn-outline-primary fw-semibold" type="button" id="sendOtpBtn" style="border-radius:0 12px 12px 0;">Send OTP</button>
+                        </div>
+                        <div class="form-text" id="otpHelp"></div>
+                    </div>
+
+                    <div class="mb-3" id="otpBlock" style="display:none;">
+                        <label class="form-label fw-semibold">Enter OTP</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-shield-alt text-secondary"></i></span>
+                            <input type="text" id="otp_code" class="form-control" style="letter-spacing:4px;" maxlength="6" inputmode="numeric" placeholder="6-digit code">
+                            <button class="btn btn-success fw-semibold" type="button" id="verifyOtpBtn" style="border-radius:0 12px 12px 0;">Verify</button>
+                        </div>
+                        <div class="form-text" id="verifyHelp"></div>
+                    </div>
+                    <div class="mb-3" id="verifiedBadge" style="display:none;">
+                        <span class="badge rounded-pill" style="background:rgba(16,185,129,0.12);color:#059669;padding:8px 16px;"><i class="fas fa-check-circle me-1"></i>Email verified</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Phone Number</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;">+91</span>
+                            <input type="tel" name="phone" id="phone" class="form-control" style="border-radius:0 12px 12px 0;" value="{{ phone or '' }}" pattern="[0-9]{7,15}" maxlength="15" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Password</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-lock text-secondary"></i></span>
+                            <input type="password" name="password" id="password" class="form-control" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-radius:0 12px 12px 0;"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-1">
+                        <div class="progress" style="height:6px;border-radius:4px;">
+                            <div class="progress-bar" id="strengthBar" role="progressbar" style="width:0%;background:#ef4444;"></div>
+                        </div>
+                        <div class="small fw-semibold mt-1" id="strengthLabel" style="color:#94a3b8;"></div>
+                    </div>
+                    <ul class="list-unstyled small mb-3" id="pwRules">
+                        <li id="rule-len"><i class="far fa-circle text-secondary me-1"></i>At least 8 characters</li>
+                        <li id="rule-upper"><i class="far fa-circle text-secondary me-1"></i>At least 1 uppercase letter</li>
+                        <li id="rule-number"><i class="far fa-circle text-secondary me-1"></i>At least 1 number</li>
+                        <li id="rule-special"><i class="far fa-circle text-secondary me-1"></i>At least 1 special character</li>
+                    </ul>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Confirm Password</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white" style="border-radius:12px 0 0 12px;"><i class="fas fa-lock text-secondary"></i></span>
+                            <input type="password" name="confirm_password" id="confirm_password" class="form-control" style="border-radius:0 12px 12px 0;" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">I am a</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="form-check card-premium p-3 text-center" style="cursor:pointer;">
+                                    <input class="form-check-input" type="radio" name="role" id="role_candidate" value="candidate" {% if role != 'recruiter' %}checked{% endif %}>
+                                    <label class="form-check-label fw-semibold" for="role_candidate">
+                                        <i class="fas fa-user-tie d-block mb-2 fs-3" style="color:var(--primary);"></i>Job Seeker
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check card-premium p-3 text-center" style="cursor:pointer;">
+                                    <input class="form-check-input" type="radio" name="role" id="role_recruiter" value="recruiter" {% if role == 'recruiter' %}checked{% endif %}>
+                                    <label class="form-check-label fw-semibold" for="role_recruiter">
+                                        <i class="fas fa-briefcase d-block mb-2 fs-3" style="color:var(--success);"></i>Recruiter
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="recruiter_fields" style="display:none;">
+                        <div class="alert alert-info small">
+                            <i class="fas fa-shield-alt me-1"></i> Recruiter accounts are manually verified by our team before job posting is enabled, to keep candidate data safe from fake recruiter accounts.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Company Name</label>
+                            <input type="text" name="company_name" class="form-control form-control-lg" style="border-radius:12px;" placeholder="e.g. Acme Corp">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Company Website</label>
+                                <input type="url" name="company_website" class="form-control form-control-lg" style="border-radius:12px;" placeholder="https://acme.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Your Position</label>
+                                <input type="text" name="work_position" class="form-control form-control-lg" style="border-radius:12px;" placeholder="e.g. Talent Acquisition Lead">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agree_terms" name="agree_terms" required>
+                        <label class="form-check-label" for="agree_terms">I agree to the <a href="{{ url_for('main.terms') }}" target="_blank">Terms &amp; Conditions</a></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-premium w-100 btn-lg" id="registerBtn">Register</button>
+                </form>
+                <div class="text-center mt-4">
+                    <p style="color:#64748b;">Already have an account? <a href="{{ url_for('auth.login') }}" style="color:var(--primary);text-decoration:none;font-weight:600;">Sign In</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    // --- role toggle (unchanged behaviour) ---
+    function toggleRecruiterFields() {
+        var isRecruiter = document.getElementById('role_recruiter').checked;
+        var fields = document.getElementById('recruiter_fields');
+        fields.style.display = isRecruiter ? 'block' : 'none';
+        var companyInput = fields.querySelector('input[name="company_name"]');
+        companyInput.required = isRecruiter;
+    }
+    document.getElementById('role_candidate').addEventListener('change', toggleRecruiterFields);
+    document.getElementById('role_recruiter').addEventListener('change', toggleRecruiterFields);
+    document.addEventListener('DOMContentLoaded', toggleRecruiterFields);
+
+    // --- show/hide password ---
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        var pw = document.getElementById('password');
+        var icon = this.querySelector('i');
+        if (pw.type === 'password') { pw.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+        else { pw.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+    });
+
+    // --- live password strength meter ---
+    var passwordEl = document.getElementById('password');
+    var bar = document.getElementById('strengthBar');
+    var label = document.getElementById('strengthLabel');
+    var rules = {
+        len: { test: function (v) { return v.length >= 8; }, el: document.getElementById('rule-len') },
+        upper: { test: function (v) { return /[A-Z]/.test(v); }, el: document.getElementById('rule-upper') },
+        number: { test: function (v) { return /[0-9]/.test(v); }, el: document.getElementById('rule-number') },
+        special: { test: function (v) { return /[!@#$%^&*(),.?":{}|<>]/.test(v); }, el: document.getElementById('rule-special') }
+    };
+    passwordEl.addEventListener('input', function () {
+        var v = passwordEl.value;
+        var passed = 0;
+        Object.keys(rules).forEach(function (key) {
+            var ok = rules[key].test(v);
+            var icon = rules[key].el.querySelector('i');
+            if (ok) { icon.className = 'fas fa-check-circle text-success me-1'; passed++; }
+            else { icon.className = 'far fa-circle text-secondary me-1'; }
+        });
+        var pct = (passed / 4) * 100;
+        bar.style.width = pct + '%';
+        var colors = ['#ef4444', '#ef4444', '#f59e0b', '#f59e0b', '#10b981'];
+        var labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        bar.style.background = colors[passed];
+        label.textContent = v ? labels[passed] : '';
+    });
+
+    // --- OTP flow ---
+    var emailEl = document.getElementById('email');
+    var sendBtn = document.getElementById('sendOtpBtn');
+    var otpBlock = document.getElementById('otpBlock');
+    var otpHelp = document.getElementById('otpHelp');
+    var verifyHelp = document.getElementById('verifyHelp');
+    var otpCodeEl = document.getElementById('otp_code');
+    var verifyBtn = document.getElementById('verifyOtpBtn');
+    var verifiedBadge = document.getElementById('verifiedBadge');
+    var otpTokenEl = document.getElementById('otp_token');
+    var emailVerified = false;
+    var cooldownTimer = null;
+
+    function markUnverified() {
+        emailVerified = false;
+        otpTokenEl.value = '';
+        verifiedBadge.style.display = 'none';
+    }
+    emailEl.addEventListener('input', markUnverified);
+
+    function startCooldown(seconds) {
+        sendBtn.disabled = true;
+        clearInterval(cooldownTimer);
+        cooldownTimer = setInterval(function () {
+            seconds--;
+            sendBtn.textContent = seconds > 0 ? ('Resend (' + seconds + 's)') : 'Resend';
+            if (seconds <= 0) { clearInterval(cooldownTimer); sendBtn.disabled = false; }
+        }, 1000);
+    }
+
+    sendBtn.addEventListener('click', function () {
+        var email = emailEl.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            otpHelp.textContent = 'Enter a valid email address first.';
+            otpHelp.style.color = '#ef4444';
+            return;
+        }
+        sendBtn.disabled = true;
+        var originalText = sendBtn.textContent;
+        sendBtn.textContent = 'Sending...';
+        otpHelp.textContent = '';
+
+        fetch("{{ url_for('auth.send_otp') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ email: email })
+        }).then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+          .then(function (res) {
+            otpHelp.textContent = res.data.message;
+            otpHelp.style.color = res.data.success ? '#059669' : '#ef4444';
+            if (res.data.success) {
+                otpBlock.style.display = 'block';
+                otpCodeEl.focus();
+                startCooldown(30);
+            } else {
+                sendBtn.textContent = originalText;
+                sendBtn.disabled = false;
+            }
+        }).catch(function () {
+            otpHelp.textContent = 'Network error, please try again.';
+            otpHelp.style.color = '#ef4444';
+            sendBtn.textContent = originalText;
+            sendBtn.disabled = false;
+        });
+    });
+
+    verifyBtn.addEventListener('click', function () {
+        var email = emailEl.value.trim();
+        var code = otpCodeEl.value.trim();
+        if (!code) { verifyHelp.textContent = 'Enter the code sent to your email.'; verifyHelp.style.color = '#ef4444'; return; }
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+
+        fetch("{{ url_for('auth.verify_otp') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ email: email, otp: code })
+        }).then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+          .then(function (res) {
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify';
+            verifyHelp.textContent = res.data.success ? '' : res.data.message;
+            verifyHelp.style.color = '#ef4444';
+            if (res.data.success) {
+                emailVerified = true;
+                otpTokenEl.value = res.data.token;
+                otpBlock.style.display = 'none';
+                verifiedBadge.style.display = 'block';
+                sendBtn.style.display = 'none';
+            }
+        }).catch(function () {
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify';
+            verifyHelp.textContent = 'Network error, please try again.';
+            verifyHelp.style.color = '#ef4444';
+        });
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+        if (!emailVerified) {
+            e.preventDefault();
+            otpHelp.textContent = 'Please verify your email with the OTP first.';
+            otpHelp.style.color = '#ef4444';
+            window.scrollTo({ top: emailEl.getBoundingClientRect().top + window.scrollY - 100, behavior: 'smooth' });
+        }
+    });
+})();
+</script>
+{% endblock %}

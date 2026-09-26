@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Skill Demand - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Recruiter</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('recruiter.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.post_job') }}"><i class="fas fa-plus-circle me-2"></i>Post Job</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.my_jobs') }}"><i class="fas fa-briefcase me-2"></i>My Jobs</a>
+                    <a class="nav-link active" href="{{ url_for('recruiter.skill_demand') }}"><i class="fas fa-chart-bar me-2"></i>Skill Demand</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-1"><i class="fas fa-chart-bar me-2" style="color:var(--primary);"></i>Skill Demand Dashboard</h3>
+            <p class="text-muted small mb-4"><i class="fas fa-database me-1"></i>Every count below is real: {{ data.total_resumes }} candidate resumes and {{ data.total_jobs }} active job postings currently on this platform. Nothing here is a projection or estimate.</p>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card-premium">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-users me-2" style="color:var(--success);"></i>Candidate Supply <span class="text-muted fw-normal">(most common skills among candidates)</span></h6>
+                        {% if data.supply %}
+                            {% set max_supply = data.supply[0][1] %}
+                            {% for skill, count in data.supply %}
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>{{ skill|title }}</span>
+                                    <strong>{{ count }}</strong>
+                                </div>
+                                <div class="progress" style="height:6px;">
+                                    <div class="progress-bar bg-success" style="width:{{ (count / max_supply * 100)|round|int }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small mb-0">No resumes with skills on the platform yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-premium">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-briefcase me-2" style="color:var(--primary);"></i>Employer Demand <span class="text-muted fw-normal">(most requested in job postings)</span></h6>
+                        {% if data.demand %}
+                            {% set max_demand = data.demand[0][1] %}
+                            {% for skill, count in data.demand %}
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>{{ skill|title }}</span>
+                                    <strong>{{ count }}</strong>
+                                </div>
+                                <div class="progress" style="height:6px;">
+                                    <div class="progress-bar progress-gradient" style="width:{{ (count / max_demand * 100)|round|int }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small mb-0">No active job postings with required skills yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-premium">
+                <h6 class="fw-bold mb-2"><i class="fas fa-exclamation-triangle me-2" style="color:var(--warning);"></i>Scarce Skills <span class="text-muted fw-normal">(in demand, relatively few candidates have them)</span></h6>
+                <p class="text-muted small mb-3">Calculated as demand rate minus supply rate, so it's fair regardless of how many total resumes or jobs exist. A useful signal for setting realistic expectations on hard-to-fill roles.</p>
+                {% if data.gap %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>Skill</th><th>Jobs Requiring It</th><th>Candidates With It</th></tr></thead>
+                        <tbody>
+                            {% for skill, demand_count, supply_count in data.gap %}
+                            <tr>
+                                <td>{{ skill|title }}</td>
+                                <td>{{ demand_count }}</td>
+                                <td>{{ supply_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0">Not enough data yet to identify a scarcity gap. This fills in as more resumes and jobs are added.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

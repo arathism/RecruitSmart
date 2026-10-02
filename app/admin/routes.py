@@ -186,17 +186,25 @@ def jobs():
 @login_required
 @admin_required
 def analytics():
+    # SQLite uses strftime(); Postgres (Render) needs to_char()
+    def month_bucket(column):
+        if db.engine.dialect.name == 'sqlite':
+            return func.strftime('%Y-%m', column)
+        return func.to_char(column, 'YYYY-MM')
+
     # User growth by month
+    user_month = month_bucket(User.created_at)
     user_growth = db.session.query(
-        func.strftime('%Y-%m', User.created_at).label('month'),
+        user_month.label('month'),
         func.count(User.id).label('count')
-    ).group_by('month').order_by('month').all()
+    ).group_by(user_month).order_by(user_month).all()
 
     # Job postings by month
+    job_month = month_bucket(Job.created_at)
     job_growth = db.session.query(
-        func.strftime('%Y-%m', Job.created_at).label('month'),
+        job_month.label('month'),
         func.count(Job.id).label('count')
-    ).group_by('month').order_by('month').all()
+    ).group_by(job_month).order_by(job_month).all()
 
     # Application stats
     app_stats = {

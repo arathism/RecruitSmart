@@ -106,8 +106,31 @@ def delete_user(user_id):
 
     deleted_email = user.email
     deleted_id = user.id
-    db.session.delete(user)
-    db.session.commit()
+    try:
+        from app.models import Message, LinkedInAudit, SalaryPrediction
+        # Several tables point at users.id with a plain foreign key (no cascade),
+        # so Postgres (Render) rejected the delete with IntegrityError -> 500.
+        # Clean those references first, then delete the user.
+        Message.query.filter((Message.sender_id == deleted_id) | (Message.receiver_id == deleted_id)).delete(synchronize_session=False)
+        Interview.query.filter((Interview.candidate_id == deleted_id) | (Interview.recruiter_id == deleted_id)).delete(synchronize_session=False)
+        LinkedInAudit.query.filter_by(user_id=deleted_id).delete(synchronize_session=False)
+        SalaryPrediction.query.filter_by(user_id=deleted_id).delete(synchronize_session=False)
+        SecurityEvent.query.filter_by(user_id=deleted_id).update({SecurityEvent.user_id: None}, synchronize_session=False)
+        User.query.filter_by(recruiter_verified_by=deleted_id).update({User.recruiter_verified_by: None}, synchronize_session=False)
+        # Applications that used this user's resumes (safety net before resumes cascade)
+        resume_ids = [r.id for r in Resume.query.filter_by(user_id=deleted_id).all()]
+        if resume_ids:
+            JobApplication.query.filter(JobApplication.resume_id.in_(resume_ids)).update({JobApplication.resume_id: None}, synchronize_session=False)
+        db.session.expire_all()
+        user = User.query.get(deleted_id)
+        db.session.delete(user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.error(f'Admin delete user failed for id={deleted_id}: {e}')
+        flash('Could not delete this user. Deactivate instead, or check the server logs.', 'danger')
+        return redirect(url_for('admin.users'))
     # Logged AFTER commit with values captured beforehand: target_id/target_label
     # are denormalized specifically so this row still makes sense once the
     # user row it refers to no longer exists.
@@ -186,25 +209,17 @@ def jobs():
 @login_required
 @admin_required
 def analytics():
-    # SQLite uses strftime(); Postgres (Render) needs to_char()
-    def month_bucket(column):
-        if db.engine.dialect.name == 'sqlite':
-            return func.strftime('%Y-%m', column)
-        return func.to_char(column, 'YYYY-MM')
-
     # User growth by month
-    user_month = month_bucket(User.created_at)
     user_growth = db.session.query(
-        user_month.label('month'),
+        func.strftime('%Y-%m', User.created_at).label('month'),
         func.count(User.id).label('count')
-    ).group_by(user_month).order_by(user_month).all()
+    ).group_by('month').order_by('month').all()
 
     # Job postings by month
-    job_month = month_bucket(Job.created_at)
     job_growth = db.session.query(
-        job_month.label('month'),
+        func.strftime('%Y-%m', Job.created_at).label('month'),
         func.count(Job.id).label('count')
-    ).group_by(job_month).order_by(job_month).all()
+    ).group_by('month').order_by('month').all()
 
     # Application stats
     app_stats = {

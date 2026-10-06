@@ -8,7 +8,7 @@
 
 ## 🌐 Live Demo
 
-**[https://recruitsmart-ai.onrender.com](https://recruitsmart-ai.onrender.com)**
+**[[https://recruitsmart-ai.onrender.com](https://recruitsmart-ai.onrender.com)](https://recruitsmart-ai.onrender.com)**
 
 > Hosted on Render's free tier — the instance spins down after periods of inactivity, so the first request after a while may take 30–50 seconds to wake up.
 

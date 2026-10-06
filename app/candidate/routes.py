@@ -12,7 +12,6 @@ from app.utils.ai_parser import parse_resume, calculate_ats_score, match_resume_
 from app.utils.file_handler import allowed_file, save_uploaded_file
 from app.utils.upload_security import (validate_file_signature, scan_pdf_for_malicious_content,
     scan_for_malware_signature, scan_docx_for_macros, scan_docx_for_zip_bomb)
-from app.utils.resume_validator import is_resume
 from app.utils.github_verifier import verify_github_portfolio
 from app.utils.pdf_report import generate_candidate_report
 from app.utils.authenticity_checker import analyze_resume_authenticity
@@ -170,19 +169,6 @@ def upload_resume():
                 return redirect(url_for('candidate.dashboard'))
 
             parsed_data = parse_resume(file_path, file.filename.rsplit('.', 1)[1].lower())
-
-            # Reject files that are not resumes (application forms, receipts,
-            # certificates, syllabi...) before scoring or saving anything.
-            looks_like_resume, not_resume_reason = is_resume(parsed_data.get('text', ''), file.filename)
-            if not looks_like_resume:
-                try:
-                    os.remove(file_path)
-                except OSError:
-                    pass
-                log_activity(current_user.id, 'upload_rejected_not_resume',
-                             f'Rejected non-resume upload "{file.filename}"')
-                flash(not_resume_reason, 'danger')
-                return redirect(url_for('candidate.dashboard'))
             ats_result = calculate_ats_score(parsed_data)
             file_ext = file.filename.rsplit('.', 1)[1].lower()
 
@@ -249,8 +235,19 @@ def delete_resume(resume_id):
     except OSError:
         pass
 
-    db.session.delete(resume)
-    db.session.commit()
+    try:
+        # job_applications.resume_id is a plain foreign key (no cascade), so on
+        # Postgres (Render) deleting a resume that was used in an application
+        # raised IntegrityError -> 500. Keep the application, just detach it.
+        JobApplication.query.filter_by(resume_id=resume.id).update(
+            {JobApplication.resume_id: None}, synchronize_session=False)
+        db.session.delete(resume)  # match_scores cascade via the model
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Resume delete failed for id={resume_id}: {e}')
+        flash('Could not delete this resume. Please try again.', 'danger')
+        return redirect(url_for('candidate.dashboard'))
 
     # If the deleted resume was the primary one, promote the most recently
     # uploaded remaining resume (if any) so the candidate always has a clear

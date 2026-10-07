@@ -8,6 +8,14 @@ from datetime import datetime
 from app.utils.decorators import admin_required
 
 
+def _month_expr(column):
+    """Year-month bucket for both SQLite (local) and PostgreSQL (Render).
+    func.strftime exists only in SQLite and raises on PostgreSQL."""
+    if db.engine.dialect.name == 'postgresql':
+        return func.to_char(column, 'YYYY-MM')
+    return func.strftime('%Y-%m', column)
+
+
 def log_admin_action(action, target_type=None, target_id=None, target_label=None, details=None):
     """Writes one row to admin_audit_logs for every privileged admin action.
     actor_email/target_label are denormalized (copied at write time) so the
@@ -211,13 +219,13 @@ def jobs():
 def analytics():
     # User growth by month
     user_growth = db.session.query(
-        func.strftime('%Y-%m', User.created_at).label('month'),
+        _month_expr(User.created_at).label('month'),
         func.count(User.id).label('count')
     ).group_by('month').order_by('month').all()
 
     # Job postings by month
     job_growth = db.session.query(
-        func.strftime('%Y-%m', Job.created_at).label('month'),
+        _month_expr(Job.created_at).label('month'),
         func.count(Job.id).label('count')
     ).group_by('month').order_by('month').all()
 

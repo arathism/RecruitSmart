@@ -14,6 +14,7 @@ from app.utils.upload_security import (validate_file_signature, scan_pdf_for_mal
     scan_for_malware_signature, scan_docx_for_macros, scan_docx_for_zip_bomb)
 from app.utils.github_verifier import verify_github_portfolio
 from app.utils.pdf_report import generate_candidate_report
+from app.utils.resume_validator import is_resume
 from app.utils.authenticity_checker import analyze_resume_authenticity
 from app.utils.salary_predictor import predict_salary
 from app.utils.linkedin_auditor import audit_linkedin_profile, parse_full_profile_text, is_url_only
@@ -169,6 +170,18 @@ def upload_resume():
                 return redirect(url_for('candidate.dashboard'))
 
             parsed_data = parse_resume(file_path, file.filename.rsplit('.', 1)[1].lower())
+
+            # Reject forms, certificates, job descriptions etc. before any
+            # resume-only scoring or saving happens.
+            ok, reason = is_resume(parsed_data.get('text', ''), file.filename)
+            if not ok:
+                try:
+                    os.remove(file_path)
+                except OSError:
+                    pass
+                flash(reason, 'warning')
+                return redirect(url_for('candidate.dashboard'))
+
             ats_result = calculate_ats_score(parsed_data)
             file_ext = file.filename.rsplit('.', 1)[1].lower()
 

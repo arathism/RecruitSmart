@@ -1,0 +1,44 @@
+{# Site-wide Help Assistant widget: floating launcher + search/chat panel.
+   Included once from base.html so it is available on every page.
+   All copy is developer-authored (see app/utils/help_bot.py); nothing here
+   renders raw user or third-party content with innerHTML. #}
+<button id="rs-help-launcher" class="rs-help-launcher" type="button"
+        aria-label="Open help assistant" title="Need help? Ask the assistant">
+    <i class="fas fa-comment-dots" aria-hidden="true"></i>
+    <span class="rs-help-dot"></span>
+</button>
+
+<div id="rs-help-panel" class="rs-help-panel" role="dialog" aria-label="Help assistant" aria-hidden="true">
+    <div class="rs-help-header">
+        <div class="rs-help-avatar"><i class="fas fa-robot" aria-hidden="true"></i></div>
+        <div class="rs-help-header-text">
+            <div class="rs-help-title">RecruitSmart Assistant</div>
+            <div class="rs-help-subtitle"><span class="rs-live-dot"></span> Instant answers, no wait time</div>
+        </div>
+        <button id="rs-help-close" class="rs-help-close" type="button" aria-label="Close help assistant">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div id="rs-help-body" class="rs-help-body"></div>
+
+    <div id="rs-help-chips" class="rs-help-chips">
+        <button type="button" class="rs-help-chip" data-q="How do I upload my resume?">Upload resume</button>
+        <button type="button" class="rs-help-chip" data-q="How is my match score calculated?">Match score</button>
+        <button type="button" class="rs-help-chip" data-q="Is my data secure?">Data security</button>
+        <button type="button" class="rs-help-chip" data-q="How do I turn on two-factor authentication?">Enable 2FA</button>
+    </div>
+
+    <div class="rs-help-security-note">
+        <i class="fas fa-shield-alt mt-1" aria-hidden="true"></i>
+        <span>Your questions are matched against our FAQ only — nothing you type here is sent to a third party, and we never ask for your password in chat.</span>
+    </div>
+
+    <form id="rs-help-form" class="rs-help-footer" autocomplete="off">
+        <input id="rs-help-input" class="rs-help-input" type="text" maxlength="300"
+               placeholder="Ask a question..." aria-label="Type your question">
+        <button id="rs-help-send" class="rs-help-send" type="submit" aria-label="Send">
+            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+        </button>
+    </form>
+</div>

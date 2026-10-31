@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Settings - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}"><i class="fas fa-users-cog me-2"></i>Manage Users</a>
+                    <a class="nav-link" href="{{ url_for('admin.jobs') }}"><i class="fas fa-briefcase me-2"></i>All Jobs</a>
+                    <a class="nav-link" href="{{ url_for('admin.analytics') }}"><i class="fas fa-chart-line me-2"></i>Analytics</a>
+                    <a class="nav-link" href="{{ url_for('admin.security_center') }}"><i class="fas fa-shield-alt me-2"></i>Security Center</a>
+                    <a class="nav-link" href="{{ url_for('admin.manage_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link active" href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>Settings</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Platform Settings</h3>
+
+            <div class="card-premium">
+                <form method="POST" action="{{ url_for('admin.settings') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <h5 class="fw-bold mb-3"><i class="fas fa-sliders-h me-2" style="color:var(--primary);"></i>General</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Site Name</label>
+                            <input type="text" name="site_name" class="form-control" value="{{ settings.site_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Support Email</label>
+                            <input type="email" name="support_email" class="form-control" value="{{ settings.support_email }}">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-3"><i class="fas fa-user-shield me-2" style="color:var(--warning);"></i>Access &amp; Security</h5>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" name="allow_new_registrations" id="allow_new_registrations" {% if settings.allow_new_registrations %}checked{% endif %}>
+                        <label class="form-check-label" for="allow_new_registrations">Allow new user registrations</label>
+                    </div>
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" role="switch" name="require_recruiter_verification" id="require_recruiter_verification" {% if settings.require_recruiter_verification %}checked{% endif %}>
+                        <label class="form-check-label" for="require_recruiter_verification">
+                            Require admin approval for new recruiter accounts
+                            <div class="form-text mt-0">When off, new recruiters are auto-approved and can post jobs / view candidates immediately &mdash; turning this off removes the anti-impersonation safeguard, so leave it on for a public deployment.</div>
+                        </label>
+                    </div>
+
+                    <h5 class="fw-bold mb-3"><i class="fas fa-wrench me-2" style="color:var(--danger);"></i>Maintenance Mode</h5>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" name="maintenance_mode" id="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %}>
+                        <label class="form-check-label" for="maintenance_mode">
+                            Enable maintenance mode
+                            <div class="form-text mt-0">When on, all non-admin visitors see the maintenance message below instead of the site.</div>
+                        </label>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Maintenance Message</label>
+                        <textarea name="maintenance_message" class="form-control" rows="2">{{ settings.maintenance_message }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-premium"><i class="fas fa-save me-2"></i>Save Settings</button>
+                    <small class="text-muted ms-2">Last updated: {{ settings.updated_at.strftime('%d %b %Y, %I:%M %p') if settings.updated_at else 'Never' }}</small>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

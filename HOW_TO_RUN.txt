@@ -1,0 +1,81 @@
+HOW TO RUN RECRUIT SMART
+=============================
+
+METHOD 1: Double-Click (Easiest)
+----------------------------------
+1. Extract recruit_smart_PUBLICATION.zip to C:\
+2. Open C:\recruit_smart_PUBLICATION\
+3. Double-click START_SERVER.bat
+4. Wait 2-3 minutes for packages to install
+5. Open browser: http://localhost:5000
+
+METHOD 2: VS Code Terminal
+--------------------------
+1. Extract to C:\recruit_smart_PUBLICATION
+2. Open VS Code -> File -> Open Folder -> C:\recruit_smart_PUBLICATION
+3. Terminal (Ctrl + `) -> Run ONE BY ONE:
+
+   cd C:\recruit_smart_PUBLICATION
+   python -m venv venv
+   venv\Scripts\activate
+   pip install -r requirements.txt
+   python run.py
+
+4. Open browser: http://localhost:5000
+
+OPTIONAL: GITHUB VERIFICATION
+------------------------------
+The GitHub Portfolio Verification feature works out of the box using GitHub's
+public API (60 requests/hour, no setup needed). For heavier demo/testing use,
+create a free token at https://github.com/settings/tokens (no scopes needed)
+and add it to your .env file as GITHUB_TOKEN=your_token_here to raise the
+limit to 5000 requests/hour.
+
+DEFAULT LOGIN
+-------------
+Admin: admin@recruitsmart.ai / set via ADMIN_PASSWORD in your .env file
+       (if you don't set one, a random password is generated on first
+       startup and printed once to the terminal -- copy it from there)
+
+FEATURES
+--------
+- Dark/Light Mode
+- Real-time Notifications
+- AI Chatbot
+- Interview Scheduling
+- Analytics Dashboard
+- Email Templates
+- API Documentation
+- Mobile Responsive
+- Animations
+- Multi-language Support
+- Advanced Search
+- Salary Prediction
+- Skill Tests
+- GDPR Compliance
+- Social Login
+- Role-Based Security
+- 2FA
+- Account Lockout
+- Password Strength
+- Resume Upload & ATS
+- AI Job Matching
+- Career Roadmap
+- Admin Dashboard
+
+TROUBLESHOOTING
+---------------
+- If port 5000 is busy, change in run.py
+- If packages fail, try: pip install --upgrade pip
+- For PowerShell issues, use CMD instead
+- Clear browser cache if CSS looks wrong
+
+PUBLICATION READY
+-----------------
+This version is designed for:
+- College Major Projects
+- Portfolio Showcase
+- GitHub Publication
+- Demo Presentations
+
+Good luck with your project!

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Skill Tests - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}"><i class="fas fa-users-cog me-2"></i>Manage Users</a>
+                    <a class="nav-link" href="{{ url_for('admin.jobs') }}"><i class="fas fa-briefcase me-2"></i>All Jobs</a>
+                    <a class="nav-link" href="{{ url_for('admin.analytics') }}"><i class="fas fa-chart-line me-2"></i>Analytics</a>
+                    <a class="nav-link" href="{{ url_for('admin.security_center') }}"><i class="fas fa-shield-alt me-2"></i>Security Center</a>
+                    <a class="nav-link active" href="{{ url_for('admin.manage_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>Settings</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Skill Tests</h3>
+
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-plus-circle me-2" style="color:var(--primary);"></i>Create a New Skill Test</h5>
+                <form method="POST" action="{{ url_for('admin.manage_tests') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Title *</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. Python Fundamentals" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Skill Category *</label>
+                            <input type="text" name="skill_category" class="form-control" placeholder="e.g. python" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Difficulty</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="What this test evaluates..."></textarea>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Time Limit (minutes)</label>
+                            <input type="number" name="time_limit" class="form-control" value="15">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Passing Score (%)</label>
+                            <input type="number" name="passing_score" class="form-control" value="70">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Questions (JSON) *</label>
+                        <textarea name="questions" class="form-control" rows="6" required placeholder='[
+  {
+    "question": "What does ATS stand for?",
+    "options": ["Applicant Tracking System", "Automated Test Suite", "Advanced Talent Search", "Application Tier System"],
+    "correct_answer": "Applicant Tracking System"
+  }
+]'></textarea>
+                        <div class="form-text">Array of objects: each with "question", "options" (array of strings), and "correct_answer" &mdash; which must exactly match one of the strings in "options" (not an index).</div>
+                    </div>
+                    <button type="submit" class="btn btn-premium"><i class="fas fa-plus-circle me-2"></i>Create Test</button>
+                </form>
+            </div>
+
+            <div class="card-premium">
+                <h5 class="fw-bold mb-3"><i class="fas fa-list me-2" style="color:var(--secondary);"></i>Existing Tests</h5>
+                {% if tests %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>Title</th><th>Category</th><th>Difficulty</th><th>Time Limit</th><th>Passing Score</th><th>Attempts</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for test in tests %}
+                            <tr>
+                                <td><strong>{{ test.title }}</strong></td>
+                                <td>{{ test.skill_category|title }}</td>
+                                <td><span class="badge bg-secondary">{{ test.difficulty|title }}</span></td>
+                                <td>{{ test.time_limit_minutes or '-' }} min</td>
+                                <td>{{ test.passing_score }}%</td>
+                                <td>{{ test.results.count() }}</td>
+                                <td><span class="badge {% if test.is_active %}bg-success{% else %}bg-secondary{% endif %}">{{ 'Active' if test.is_active else 'Inactive' }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No skill tests created yet. Use the form above to add your first one.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

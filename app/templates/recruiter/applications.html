@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Applications - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">Applications for {{ job.title }}</h3>
+            <p class="text-muted mb-0">{{ applications|length }} application(s)</p>
+        </div>
+        <a href="{{ url_for('recruiter.my_jobs') }}" class="btn btn-outline-secondary">Back to My Jobs</a>
+    </div>
+
+    {% if applications %}
+    <div class="card-premium">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>Candidate</th><th>Applied</th><th>Cover Letter</th><th>Status</th><th>Update</th></tr></thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td>
+                            <strong>{{ app.candidate.get_full_name() }}</strong><br>
+                            <small class="text-muted">{{ app.candidate.email }}</small>
+                        </td>
+                        <td>{{ app.applied_at.strftime('%d %b %Y') }}</td>
+                        <td>{{ (app.cover_letter or 'No cover letter provided')[:100] }}</td>
+                        <td>
+                            <span class="badge {% if app.status == 'pending' %}bg-secondary{% elif app.status == 'shortlisted' %}bg-success{% elif app.status == 'rejected' %}bg-danger{% else %}bg-primary{% endif %}">
+                                {{ app.status|title }}
+                            </span>
+                        </td>
+                        <td style="min-width:260px;">
+                            <form method="POST" action="{{ url_for('recruiter.update_application', app_id=app.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <div class="d-flex gap-2 mb-1">
+                                    <select name="status" class="form-select form-select-sm" onchange="this.closest('form').querySelector('.reason-field').style.display = (this.value === 'rejected') ? 'block' : 'none';">
+                                        <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="reviewed" {% if app.status == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                                        <option value="shortlisted" {% if app.status == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
+                                        <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                                </div>
+                                <textarea name="recruiter_notes" class="form-control form-control-sm reason-field" rows="2"
+                                    placeholder="Reason for rejection (shown to candidate along with an auto-generated skill gap analysis)"
+                                    style="display:{{ 'block' if app.status == 'rejected' else 'none' }};">{{ app.recruiter_notes or '' }}</textarea>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card-premium text-center py-5">
+        <i class="fas fa-inbox fs-1 text-muted mb-3"></i>
+        <p class="text-muted mb-0">No applications received yet for this job.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

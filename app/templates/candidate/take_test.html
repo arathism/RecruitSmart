@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ test.title }} - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="card-premium mb-4">
+        <h3 class="fw-bold mb-1">{{ test.title }}</h3>
+        <p class="text-muted mb-0">{{ test.description }} &middot; Time limit: {{ test.time_limit_minutes }} min &middot; Passing score: {{ test.passing_score }}%</p>
+    </div>
+
+    <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        {% for q in questions %}
+        {% set qidx = loop.index0 %}
+        <div class="card-premium mb-3">
+            <p class="fw-bold mb-3">{{ loop.index }}. {{ q.question }}</p>
+            {% for option in q.options %}
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="question_{{ qidx }}" id="q{{ qidx }}_{{ loop.index }}" value="{{ option }}" required>
+                <label class="form-check-label" for="q{{ qidx }}_{{ loop.index }}">{{ option }}</label>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-premium">Submit Test</button>
+        <a href="{{ url_for('candidate.skill_tests') }}" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

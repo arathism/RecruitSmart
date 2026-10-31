@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Edit Job - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Recruiter</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('recruiter.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.post_job') }}"><i class="fas fa-plus-circle me-2"></i>Post Job</a>
+                    <a class="nav-link active" href="{{ url_for('recruiter.my_jobs') }}"><i class="fas fa-briefcase me-2"></i>My Jobs</a>
+                    <a class="nav-link" href="{{ url_for('recruiter.skill_demand') }}"><i class="fas fa-chart-bar me-2"></i>Skill Demand</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Edit Job: {{ job.title }}</h3>
+
+            {% if not job.get_required_skills_list() %}
+            <div class="card-premium mb-4" style="border-left:5px solid var(--danger); background:rgba(239,68,68,0.06);">
+                <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle me-2" style="color:var(--danger);"></i>This job has no required skills set</h6>
+                <p class="mb-0 small">Every candidate who runs an AI match against this job will get a meaningless 0% skill match, regardless of how well they'd actually fit. Add required skills below to fix this.</p>
+            </div>
+            {% endif %}
+
+            <div class="card-premium">
+                <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Job Title *</label>
+                        <input type="text" name="title" class="form-control" value="{{ job.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description *</label>
+                        <textarea name="description" class="form-control" rows="4" required>{{ job.description }}</textarea>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Requirements</label>
+                            <textarea name="requirements" class="form-control" rows="3">{{ job.requirements or '' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Responsibilities</label>
+                            <textarea name="responsibilities" class="form-control" rows="3">{{ job.responsibilities or '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Location</label>
+                            <input type="text" name="location" class="form-control" value="{{ job.location or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Job Type</label>
+                            <select name="job_type" class="form-select">
+                                <option value="full_time" {% if job.job_type == 'full_time' %}selected{% endif %}>Full Time</option>
+                                <option value="part_time" {% if job.job_type == 'part_time' %}selected{% endif %}>Part Time</option>
+                                <option value="contract" {% if job.job_type == 'contract' %}selected{% endif %}>Contract</option>
+                                <option value="internship" {% if job.job_type == 'internship' %}selected{% endif %}>Internship</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_remote" id="is_remote" {% if job.is_remote %}checked{% endif %}>
+                                <label class="form-check-label" for="is_remote">Remote position</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Required Skills (comma-separated) *</label>
+                            <input type="text" name="required_skills" class="form-control {% if not job.get_required_skills_list() %}is-invalid{% endif %}"
+                                   value="{{ job.get_required_skills_list()|join(', ') }}" placeholder="python, sql, docker" required>
+                            {% if not job.get_required_skills_list() %}<div class="invalid-feedback">This is empty, which is why matching is broken. Add at least one skill.</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Preferred Skills (comma-separated)</label>
+                            <input type="text" name="preferred_skills" class="form-control" value="{{ job.get_preferred_skills_list()|join(', ') }}" placeholder="aws, kubernetes">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Salary Min</label>
+                            <input type="number" name="salary_min" class="form-control" value="{{ job.salary_min or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Salary Max</label>
+                            <input type="number" name="salary_max" class="form-control" value="{{ job.salary_max or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Min Experience (yrs)</label>
+                            <input type="number" name="experience_min" class="form-control" value="{{ job.experience_min or 0 }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Max Experience (yrs)</label>
+                            <input type="number" name="experience_max" class="form-control" value="{{ job.experience_max or '' }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-premium"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    <a href="{{ url_for('recruiter.my_jobs') }}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

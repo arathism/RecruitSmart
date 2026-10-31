@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Interview Prep - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link active" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-1"><i class="fas fa-comments me-2" style="color:var(--primary);"></i>Interview Prep</h3>
+            <p class="text-muted small mb-4">Get practice questions for any role, drawn from a curated technical question bank &mdash; not a live AI interviewer.</p>
+
+            <div class="card-premium mb-4">
+                <form method="POST" action="{{ url_for('candidate.interview_prep') }}" class="row g-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Job Title *</label>
+                        <input type="text" name="job_title" class="form-control" placeholder="e.g. Backend Developer" value="{{ job_title }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Skills (comma-separated, optional)</label>
+                        <input type="text" name="skills" class="form-control" placeholder="Leave blank to use your resume's skills automatically">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-premium"><i class="fas fa-magic me-2"></i>Generate Questions</button>
+                        {% if primary_resume %}<small class="text-muted ms-2">Using skills from your primary resume if left blank.</small>{% endif %}
+                    </div>
+                </form>
+            </div>
+
+            {% if questions %}
+            <div class="card-premium mb-4">
+                <h6 class="fw-bold mb-2"><i class="fas fa-door-open me-2" style="color:var(--accent);"></i>Opening Question</h6>
+                <p class="mb-0">{{ questions.opening }}</p>
+            </div>
+
+            <div class="card-premium mb-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-code me-2" style="color:var(--primary);"></i>Technical Questions</h6>
+                {% for item in questions.technical %}
+                <div class="mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                    <span class="badge bg-secondary mb-1">{{ item.skill }}</span>
+                    <p class="mb-0">{{ item.question }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="card-premium">
+                <h6 class="fw-bold mb-3"><i class="fas fa-user me-2" style="color:var(--success);"></i>Behavioral Questions</h6>
+                {% for q in questions.behavioral %}
+                <p class="mb-2">{{ loop.index }}. {{ q }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

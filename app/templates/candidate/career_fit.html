@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Career Fit Analysis - Recruit Smart{% endblock %}
+
+{% macro fit_block(results) %}
+    {% set strong = results|selectattr('tier', 'equalto', 'Strong Match')|list %}
+    {% set good = results|selectattr('tier', 'equalto', 'Good Match')|list %}
+    {% set weak = results|selectattr('tier', 'equalto', 'Weak Match')|list %}
+
+    {% if strong %}
+    <h6 class="fw-bold mb-3 mt-2"><span class="badge bg-success me-2">Strong Matches</span>Competitive right now</h6>
+    {% for r in strong %}
+    <div class="card-premium mb-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h6 class="fw-bold mb-1">{{ r.title }}</h6>
+                <p class="mb-1 small"><strong>Matched:</strong> {{ r.matched_skills|join(', ')|title }}</p>
+                {% if r.missing_skills %}<p class="mb-0 small text-muted"><strong>Missing:</strong> {{ r.missing_skills|join(', ')|title }}</p>{% endif %}
+            </div>
+            <span class="badge bg-success fs-6">{{ r.match_pct }}%</span>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if good %}
+    <h6 class="fw-bold mb-3 mt-4"><span class="badge bg-warning text-dark me-2">Good Matches</span>Missing some real pieces</h6>
+    {% for r in good %}
+    <div class="card-premium mb-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h6 class="fw-bold mb-1">{{ r.title }}</h6>
+                <p class="mb-1 small"><strong>Matched:</strong> {{ r.matched_skills|join(', ')|title if r.matched_skills else 'None yet' }}</p>
+                {% if r.missing_skills %}<p class="mb-0 small text-muted"><strong>Missing:</strong> {{ r.missing_skills|join(', ')|title }}</p>{% endif %}
+            </div>
+            <span class="badge bg-warning text-dark fs-6">{{ r.match_pct }}%</span>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if weak %}
+    <h6 class="fw-bold mb-3 mt-4"><span class="badge bg-secondary me-2">Not Yet</span>Needs real upskilling</h6>
+    {% for r in weak %}
+    <div class="card-premium mb-3" style="opacity:0.75;">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h6 class="fw-bold mb-1">{{ r.title }}</h6>
+                {% if r.missing_skills %}<p class="mb-0 small text-muted"><strong>Missing:</strong> {{ r.missing_skills|join(', ')|title }}</p>{% endif %}
+            </div>
+            <span class="badge bg-secondary fs-6">{{ r.match_pct }}%</span>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link active" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-1"><i class="fas fa-bullseye me-2" style="color:var(--primary);"></i>Career Fit Analysis</h3>
+            <p class="text-muted small mb-4">
+                {% if resume_results|length > 1 %}
+                    You have {{ resume_results|length }} resumes on file &mdash; each is analyzed on its own, side by side below, so a cybersecurity-focused resume and a web-dev resume each get their own fit scores instead of being blended into one.
+                {% else %}
+                    Based on your resume's skills, ranked against common tech role categories using the same skill-overlap scoring as job matching elsewhere on this platform.
+                {% endif %}
+            </p>
+
+            {% if not primary_resume %}
+            <div class="card-premium text-center py-5">
+                <i class="fas fa-file-upload fs-1 text-muted mb-3"></i>
+                <p class="text-muted mb-2">Upload a resume first so we have skills to analyze.</p>
+                <a href="{{ url_for('candidate.dashboard') }}" class="btn btn-premium">Upload Resume</a>
+            </div>
+            {% elif not resume_results %}
+            <div class="card-premium text-center py-5">
+                <i class="fas fa-tools fs-1 text-muted mb-3"></i>
+                <p class="text-muted mb-0">No skills were detected on your resume(s) yet, so we can't compute a fit analysis. Add skills manually on the resume's detail page, then come back here.</p>
+            </div>
+
+            {% elif resume_results|length == 1 %}
+                {% set entry = resume_results[0] %}
+                {{ fit_block(entry.results) }}
+                <p class="text-muted small mt-3"><i class="fas fa-info-circle me-1"></i>This is computed against a curated reference set of common role categories, not necessarily jobs currently posted on this platform. Check <a href="{{ url_for('candidate.browse_jobs') }}">Browse Jobs</a> for real openings and their live match scores.</p>
+
+            {% else %}
+                <div class="row flex-nowrap flex-lg-wrap" style="overflow-x:auto;">
+                    {% for entry in resume_results %}
+                    <div class="col-lg-{{ 12 // resume_results|length if resume_results|length <= 3 else 6 }} col-11 mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <i class="fas fa-file-alt" style="color:var(--primary);"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ entry.resume.original_filename }}</h6>
+                                {% if entry.resume.is_primary %}<span class="badge bg-primary">Primary</span>{% endif %}
+                            </div>
+                        </div>
+                        {{ fit_block(entry.results) }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="text-muted small mt-3"><i class="fas fa-info-circle me-1"></i>Each resume is scored independently against a curated reference set of common role categories. Check <a href="{{ url_for('candidate.browse_jobs') }}">Browse Jobs</a> for real openings and their live match scores.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

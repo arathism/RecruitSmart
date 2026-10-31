@@ -1,0 +1,8 @@
+{
+  "label_source": "synthetic",
+  "generated_by": "research/generate_synthetic_dataset.py",
+  "generated_with_seed": 42,
+  "annotators": null,
+  "inter_annotator_agreement": null,
+  "notes": "Placeholder dataset for exercising the pipeline end-to-end. human_relevance in labels.csv was assigned by a fixed skill-overlap rule, NOT by a human judge. Do not cite numbers computed against this file in a publication. Replace via research/real_data_tools.py once real human annotations are collected, which will rewrite this file with label_source: \"human\" and real annotator/agreement info."
+}

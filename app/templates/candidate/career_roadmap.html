@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Career Roadmap - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link active" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Career Roadmap</h3>
+
+            <div class="card-premium mb-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-route me-2" style="color:var(--primary);"></i>Generate a New Roadmap</h5>
+                <form method="POST" action="{{ url_for('candidate.career_roadmap') }}" class="row g-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="col-md-6">
+                        <input type="text" name="target_role" class="form-control" placeholder="Target role, e.g. Data Scientist" required>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="target_industry" class="form-control" placeholder="Target industry (optional)">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-premium w-100">Generate</button>
+                    </div>
+                </form>
+            </div>
+
+            {% if roadmaps %}
+                <div class="row g-4">
+                    {% for roadmap in roadmaps %}
+                    <div class="col-md-6">
+                        <a href="{{ url_for('candidate.view_roadmap', roadmap_id=roadmap.id) }}" class="text-decoration-none text-dark">
+                            <div class="card-premium h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">{{ roadmap.target_role }}</h5>
+                                        <small class="text-muted">{{ roadmap.target_industry or 'Any industry' }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ 'success' if roadmap.readiness_score >= 70 else 'warning' if roadmap.readiness_score >= 40 else 'danger' }}">{{ roadmap.readiness_score }}% Ready</span>
+                                </div>
+                                <div class="progress my-2" style="height:8px;"><div class="progress-bar progress-gradient" style="width:{{ roadmap.readiness_score }}%"></div></div>
+                                <small class="text-muted">Est. {{ roadmap.estimated_months }} months &middot; Market demand: {{ roadmap.market_demand|title }}</small>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card-premium text-center py-5">
+                    <i class="fas fa-route fs-1 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No roadmaps yet. Enter a target role above to generate your first AI career roadmap.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

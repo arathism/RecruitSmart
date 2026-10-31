@@ -1,0 +1,9 @@
+.env
+*.pyc
+__pycache__/
+instance/
+.pytest_cache/
+*.db
+.DS_Store
+
+app/static/uploads/

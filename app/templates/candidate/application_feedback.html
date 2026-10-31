@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Application Feedback - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">Application Update: {{ job.title }}</h3>
+            <p class="text-muted mb-0">
+                <span class="badge {% if application.status == 'rejected' %}bg-danger{% elif application.status == 'shortlisted' %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ application.status|title }}
+                </span>
+                &middot; Applied {{ application.applied_at.strftime('%d %b %Y') }}
+            </p>
+        </div>
+        <a href="{{ url_for('candidate.my_applications') }}" class="btn btn-outline-secondary">Back to Applications</a>
+    </div>
+
+    {% if application.status == 'rejected' %}
+
+    <div class="card-premium mb-4">
+        <h5 class="fw-bold mb-2"><i class="fas fa-comment-dots me-2" style="color:var(--primary);"></i>Recruiter's Reason</h5>
+        {% if application.recruiter_notes %}
+            <p class="mb-0">{{ application.recruiter_notes }}</p>
+        {% else %}
+            <p class="text-muted mb-0">The recruiter didn't leave a specific note. Based on the skill gap analysis below, the most likely reason was a mismatch between your current skill set and this role's requirements.</p>
+        {% endif %}
+    </div>
+
+    <div class="card-premium mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="fas fa-chart-pie me-2" style="color:var(--accent);"></i>Skill Match for This Role</h5>
+            <span class="badge {% if match_pct >= 70 %}bg-success{% elif match_pct >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ match_pct }}% Match</span>
+        </div>
+        <div class="progress mb-4" style="height:10px;">
+            <div class="progress-bar progress-gradient" style="width:{{ match_pct }}%"></div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <h6 class="fw-bold mb-2"><i class="fas fa-check-circle me-2" style="color:var(--success);"></i>Skills You Had</h6>
+                {% for skill in matching_skills %}<span class="skill-tag">{{ skill }}</span>{% else %}<p class="text-muted small mb-0">None of the specific required skills were found on your resume.</p>{% endfor %}
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold mb-2"><i class="fas fa-times-circle me-2" style="color:var(--danger);"></i>Skill Gap &mdash; What This Role Needed</h6>
+                {% for skill in missing_skills %}<span class="skill-tag">{{ skill }}</span>{% else %}<p class="text-success small mb-0">You had every required skill &mdash; the decision likely came down to other candidates or non-skill factors.</p>{% endfor %}
+            </div>
+        </div>
+        {% if missing_skills %}
+        <div class="mt-3">
+            <a href="{{ url_for('candidate.career_roadmap') }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-route me-1"></i>Build a Roadmap to Close This Gap</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-premium">
+        <h5 class="fw-bold mb-1"><i class="fas fa-lightbulb me-2" style="color:var(--warning);"></i>Better-Fit Roles Open Right Now</h5>
+        <p class="text-muted small mb-3">Ranked by how much each role's required skills overlap with skills already on your resume.</p>
+        {% if suggested_jobs %}
+            <div class="row g-3">
+                {% for score, sjob in suggested_jobs %}
+                <div class="col-md-4">
+                    <div class="card-premium h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold mb-0">{{ sjob.title }}</h6>
+                            <span class="badge bg-success">{{ score }}% fit</span>
+                        </div>
+                        <p class="text-muted small mb-2">{{ sjob.location or 'Remote' }}</p>
+                        <a href="{{ url_for('candidate.view_job', job_id=sjob.id) }}" class="btn btn-sm btn-premium w-100">View &amp; Apply</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No strongly-matching open roles right now &mdash; check <a href="{{ url_for('candidate.browse_jobs') }}">Browse Jobs</a> for the full list.</p>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="card-premium text-center py-5">
+        <i class="fas fa-info-circle fs-1 text-muted mb-3"></i>
+        <p class="text-muted mb-0">This application hasn't been rejected &mdash; detailed feedback is shown for rejected applications only. Current status: <strong>{{ application.status|title }}</strong>.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

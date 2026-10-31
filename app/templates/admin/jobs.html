@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}All Jobs - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}"><i class="fas fa-users-cog me-2"></i>Manage Users</a>
+                    <a class="nav-link active" href="{{ url_for('admin.jobs') }}"><i class="fas fa-briefcase me-2"></i>All Jobs</a>
+                    <a class="nav-link" href="{{ url_for('admin.analytics') }}"><i class="fas fa-chart-line me-2"></i>Analytics</a>
+                    <a class="nav-link" href="{{ url_for('admin.security_center') }}"><i class="fas fa-shield-alt me-2"></i>Security Center</a>
+                    <a class="nav-link" href="{{ url_for('admin.manage_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>Settings</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">All Jobs</h3>
+
+            {% if jobs.items %}
+            <div class="card-premium">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr><th>Title</th><th>Recruiter</th><th>Location</th><th>Type</th><th>Status</th><th>Applications</th><th>Posted</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs.items %}
+                            <tr>
+                                <td><strong>{{ job.title }}</strong></td>
+                                <td>{{ job.recruiter.get_full_name() if job.recruiter else 'Unknown' }}<br>
+                                    <small class="text-muted">{{ job.recruiter.company_name if job.recruiter else '' }}</small>
+                                </td>
+                                <td>{{ job.location or 'Remote' }}</td>
+                                <td>{{ job.job_type|replace('_', ' ')|title }}</td>
+                                <td>
+                                    <span class="badge {% if job.status == 'active' %}bg-success{% elif job.status == 'closed' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                                        {{ job.status|title }}
+                                    </span>
+                                </td>
+                                <td>{{ job.application_count }}</td>
+                                <td>{{ job.posted_at.strftime('%d %b %Y') if job.posted_at else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if jobs.pages > 1 %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% for p in range(1, jobs.pages + 1) %}
+                    <li class="page-item {% if p == jobs.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin.jobs', page=p) }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="card-premium text-center py-5">
+                <i class="fas fa-briefcase fs-1 text-muted mb-3"></i>
+                <p class="text-muted mb-0">No jobs have been posted on the platform yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

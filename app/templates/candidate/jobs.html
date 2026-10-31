@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Browse Jobs - Recruit Smart{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="dashboard-sidebar">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:var(--gradient);color:white;font-weight:700;">
+                        {{ current_user.get_initials() }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ current_user.first_name }}</h6>
+                        <small class="text-muted">Candidate</small>
+                    </div>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('candidate.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link active" href="{{ url_for('candidate.browse_jobs') }}"><i class="fas fa-briefcase me-2"></i>Browse Jobs</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_fit') }}"><i class="fas fa-bullseye me-2"></i>Career Fit Analysis</a>
+                    <a class="nav-link" href="{{ url_for('candidate.interview_prep') }}"><i class="fas fa-comments me-2"></i>Interview Prep</a>
+                    <a class="nav-link" href="{{ url_for('candidate.career_roadmap') }}"><i class="fas fa-route me-2"></i>Career Roadmap</a>
+                    <a class="nav-link" href="{{ url_for('candidate.salary_insights') }}"><i class="fas fa-indian-rupee-sign me-2"></i>Salary Insights</a>
+                    <a class="nav-link" href="{{ url_for('candidate.skill_tests') }}"><i class="fas fa-clipboard-check me-2"></i>Skill Tests</a>
+                    <a class="nav-link" href="{{ url_for('candidate.github_verify') }}"><i class="fab fa-github me-2"></i>GitHub Verification</a>
+                    <a class="nav-link" href="{{ url_for('candidate.linkedin_review') }}"><i class="fab fa-linkedin me-2"></i>LinkedIn Review</a>
+                    <a class="nav-link" href="{{ url_for('candidate.my_applications') }}"><i class="fas fa-paper-plane me-2"></i>My Applications</a>
+                    <a class="nav-link" href="{{ url_for('candidate.notifications') }}"><i class="fas fa-bell me-2"></i>Notifications</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <h3 class="fw-bold mb-4">Browse Jobs</h3>
+
+            <div class="card-premium mb-4">
+                <form method="GET" action="{{ url_for('candidate.browse_jobs') }}" class="row g-2">
+                    <div class="col-md-5">
+                        <input type="text" name="search" class="form-control" placeholder="Job title or keyword" value="{{ search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="location" class="form-control" placeholder="Location" value="{{ location }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="job_type" class="form-select">
+                            <option value="">Any Job Type</option>
+                            <option value="full_time" {% if job_type == 'full_time' %}selected{% endif %}>Full Time</option>
+                            <option value="part_time" {% if job_type == 'part_time' %}selected{% endif %}>Part Time</option>
+                            <option value="contract" {% if job_type == 'contract' %}selected{% endif %}>Contract</option>
+                            <option value="internship" {% if job_type == 'internship' %}selected{% endif %}>Internship</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-premium w-100"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            {% if jobs.items %}
+                {% for job in jobs.items %}
+                <div class="card-premium mb-3">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1"><a href="{{ url_for('candidate.view_job', job_id=job.id) }}" class="text-decoration-none">{{ job.title }}</a></h5>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ job.location or 'Remote' }}
+                                {% if job.is_remote %}<span class="badge bg-info ms-1">Remote</span>{% endif %}
+                                &nbsp;&middot;&nbsp;<i class="fas fa-briefcase me-1"></i>{{ job.job_type|replace('_', ' ')|title }}
+                                &nbsp;&middot;&nbsp;{{ job.get_salary_display() }}
+                            </p>
+                            <p class="mb-2">{{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}</p>
+                            {% for skill in job.get_required_skills_list()[:6] %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="text-end">
+                            <a href="{{ url_for('candidate.view_job', job_id=job.id) }}" class="btn btn-premium">View &amp; Apply</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if jobs.pages > 1 %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% for p in range(1, jobs.pages + 1) %}
+                        <li class="page-item {% if p == jobs.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('candidate.browse_jobs', page=p, search=search, location=location, job_type=job_type) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="card-premium text-center py-5">
+                    <i class="fas fa-briefcase fs-1 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No jobs found matching your criteria. Try a different search.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
